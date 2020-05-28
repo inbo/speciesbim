@@ -29,4 +29,5 @@ with conn:
     execute_sql_from_file(conn, 'create_new_tables.sql')
 
     print("Step 3: populate the scientifcname tables based on the actual content")
-    execute_sql_from_file(conn, 'populate_scientificname.sql')
+    execute_sql_from_file(conn, 'populate_scientificname.sql',
+                          {'limit': configParser.get('transform_db', 'scientificnames-limit')})

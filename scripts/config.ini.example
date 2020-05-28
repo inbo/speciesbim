@@ -5,3 +5,7 @@ password = type_your_password_here
 host = localhost
 port = 5433
 schema = biodiv
+
+[transform_db]
+# scientificnames-limit: number | ALL
+scientificnames-limit = 200
