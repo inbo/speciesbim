@@ -1,4 +1,4 @@
-INSERT INTO scientificname (scientificName, authorship)
+INSERT INTO scientificname ("scientificName", "authorship")
 SELECT acceptedname, scientificnameauthorship FROM biodiv.taxon WHERE
 id IN (SELECT nptaxonid FROM biodiv.commontaxa) OR
 id IN (SELECT taxonid FROM biodiv.speciesannex) OR
