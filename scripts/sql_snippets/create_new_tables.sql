@@ -11,10 +11,11 @@ CREATE TYPE gbifmatchtype AS ENUM ('EXACT', 'FUZZY', 'HIGHERRANK');
 CREATE TABLE scientificname (
     id serial PRIMARY KEY,
     taxonomyId integer REFERENCES taxonomy(id), -- Can be null if no match
+    deprecatedTaxonId integer REFERENCES taxon(id),
     scientificName character varying(255) NOT NULL, -- as appear in the old "taxon" table
     authorship character varying(255), -- as appear in the old "taxon" table,
     -- !! the following field are attributes of the match process !!
-    lastMatch timestamp with time zone, -- when was a GBIF match last attempted?
+    lastMatched timestamp with time zone, -- when was a GBIF match last attempted?
     matchConfidence smallint,
     matchType gbifmatchtype
 );
