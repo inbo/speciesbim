@@ -7,6 +7,7 @@
 
 import psycopg2
 import configparser
+import gbif_match
 
 from helpers import execute_sql_from_file
 
@@ -31,3 +32,6 @@ with conn:
     print("Step 3: populate the scientifcname tables based on the actual content")
     execute_sql_from_file(conn, 'populate_scientificname.sql',
                           {'limit': configParser.get('transform_db', 'scientificnames-limit')})
+
+    print("Step 4: populate taxonomy table with matches to GBIF Backbone and update scientificname table")
+    gbif_match.gbif_match(conn, configParser=configParser)
