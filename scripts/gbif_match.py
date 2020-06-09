@@ -151,9 +151,23 @@ def gbif_match(conn, configParser, log_filename = "./logs/match_names_to_gbif_ba
         elapsed_time = f"Match to GBIF Backbone performed in {round(end - start)}s."
         print(elapsed_time)
         not_found_taxa_log.write(elapsed_time + '\n')
-        not_found_taxa_log.close()
 
-    # TODO: try to improve matches by using rank
+        # TODO: try to improve matches by using rank
+        # get unmatched_taxa and store it as a dictionary
+        cur = execute_sql_from_file(conn, 'get_unmatched_names_scientificname.sql',
+                                    {'limit': configParser.get('gbif_match', 'scientificnames-rank-limit')})
+        cols_scientificname = list(map(lambda x: x[0], cur.description))
+        scientificname = cur.fetchall()
+        scientificname_dict = dict()
+        if scientificname is not None:
+            for row in scientificname:
+                scientificname_dict[row[0]] = dict(zip(cols_scientificname, row))
+
+        n_taxa = len(scientificname)
+        print(f"Number of unmatched taxa by name in scientificname table: {n_taxa}.")
+        log = f"Add rank to names (scientificName + authorship) to improve match to GBIF Backbone. "
+        print(log)
+        not_found_taxa_log.write('\n' + log + '\n')
 
 if __name__ == "__main__":
     configParser = configparser.RawConfigParser()
