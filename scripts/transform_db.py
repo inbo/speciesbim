@@ -22,16 +22,29 @@ conn = psycopg2.connect(dbname=configParser.get('database', 'dbname'),
                         port=int(configParser.get('database', 'port')),
                         options=f"-c search_path={configParser.get('database', 'schema')}")
 
+log_filename = "./logs/transform_db_log.csv"
+log_file = open(log_filename, 'w')
+
 with conn:
-    print("Step 1: Drop our new tables if they already exists (idempotent script)")
+    message = "Step 1: Drop our new tables if they already exists (idempotent script)"
+    print(message)
+    log_file.write(message + '\n')
     execute_sql_from_file(conn, 'drop_new_tables_if_exists.sql')
 
-    print("Step 2: create the new tables")
+    message = "Step 2: create the new tables"
+    print(message)
+    log_file.write(message + '\n')
     execute_sql_from_file(conn, 'create_new_tables.sql')
 
-    print("Step 3: populate the scientifcname tables based on the actual content")
+    message = "Step 3: populate the scientifcname tables based on the actual content"
+    print(message)
+    log_file.write(message + '\n')
     execute_sql_from_file(conn, 'populate_scientificname.sql',
                           {'limit': configParser.get('transform_db', 'scientificnames-limit')})
 
-    print("Step 4: populate taxonomy table with matches to GBIF Backbone and update scientificname table")
-    gbif_match.gbif_match(conn, configParser=configParser)
+    message = "Step 4: populate taxonomy table with matches to GBIF Backbone and update scientificname table"
+    print(message)
+    log_file.write(message + '\n')
+    gbif_match.gbif_match(conn, configParser=configParser, log_file = log_file)
+
+log_file.close()
