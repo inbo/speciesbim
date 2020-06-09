@@ -126,7 +126,6 @@ def gbif_match(conn, configParser, log_filename = "./logs/match_names_to_gbif_ba
                                                             "UPDATE taxonomy SET {{cols_values_to_update}} "
                                                             "WHERE \"gbifId\" = {{gbifId}}",
                                                             {'cols_values_to_update': cols_values_to_update, 'gbifId': gbifId})
-                        cols_values_to_update = " , ".join()
                     except Exception as e:
                         print(e)
             conn.commit()
@@ -145,10 +144,6 @@ def gbif_match(conn, configParser, log_filename = "./logs/match_names_to_gbif_ba
             except Exception as e:
                 print(e)
 
-            # info_to_add_scientificname = {'id': id, 'lastMatched': lastMatched, 'matchType': matchType,
-            #                              'matchConfidence': matchConfidence}
-            # taxonomy = taxonomy.append(taxon_to_add_taxonomy, ignore_index=True)
-            # scientificname_info_match = scientificname_info_match.append(info_to_add_scientificname, ignore_index=True)
         end = time.time()
         n_matched_taxa = f"Number of matched names: {i}/{n_taxa} {i / n_taxa * 100}%."
         print(n_matched_taxa)
