@@ -10,7 +10,7 @@ def gbif_match(conn, configParser, log_filename = "./logs/match_names_to_gbif_ba
     with conn:
         # get scientificname table and store it as a dictionary
         cur = execute_sql_from_file(conn, 'get_names_scientificname.sql',
-                                                 {'limit': configParser.get('gbif_match', 'scientifinames-limit')})
+                                                 {'limit': configParser.get('gbif_match', 'scientificnames-limit')})
         cols_scientificname = list(map(lambda x: x[0], cur.description))
         scientificname = cur.fetchall()
         scientificname_dict = dict()
