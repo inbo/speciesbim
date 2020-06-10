@@ -1,7 +1,6 @@
 import os
 
-from jinja2 import Template
-
+from jinjasql import JinjaSql
 
 def execute_sql_from_jinja_string(conn, sql_string, context=None):
     # conn: a (psycopg2) connection object
@@ -14,12 +13,15 @@ def execute_sql_from_jinja_string(conn, sql_string, context=None):
     #
     # execute_sql_from_jinja_string(conn, "SELECT version();")
     # execute_sql_from_jinja_string(conn, "SELECT * FROM biodiv.address LIMIT {{limit}}", {'limit': 5})
+    j = JinjaSql()
+
     if context is None:
         context = {}
 
+    query, bind_params = j.prepare_query(sql_string, context)
+
     cur = conn.cursor()
-    sql_template = Template(sql_string)
-    cur.execute(sql_template.render(context))
+    cur.execute(query, bind_params)
 
     return cur
 
