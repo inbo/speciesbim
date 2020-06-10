@@ -6,11 +6,16 @@ import configparser
 from helpers import execute_sql_from_file
 from helpers import execute_sql_from_jinja_string
 
-def gbif_match(conn, configParser, log_file):
+def gbif_match(conn, configParser, log_file, unmatched_only = False):
     with conn:
         # get scientificname table and store it as a dictionary
-        cur = execute_sql_from_file(conn, 'get_names_scientificname.sql',
-                                                 {'limit': configParser.get('gbif_match', 'scientificnames-limit')})
+        if not unmatched_only:
+            cur = execute_sql_from_file(conn, 'get_names_scientificname.sql',
+                                                     {'limit': configParser.get('gbif_match', 'scientificnames-limit')})
+        else:
+            # unmatched names only
+            cur = execute_sql_from_file(conn, 'get_names_scientificname_unmatched_only.sql',
+                                        {'limit': configParser.get('gbif_match', 'scientificnames-limit')})
         cols_scientificname = list(map(lambda x: x[0], cur.description))
         scientificname = cur.fetchall()
         scientificname_dict = dict()
@@ -81,13 +86,14 @@ def gbif_match(conn, configParser, log_file):
                 try:
                     # insert taxon in taxonomy
                     cols_string = '\"'+'\", \"'.join(taxon.keys())+'\"'
-                    values_string = '\'' +'\', \''.join(map(lambda x: str(x), taxon.values())) +'\''
-                    cur = execute_sql_from_jinja_string(conn, "INSERT INTO taxonomy ({{cols}}) VALUES ({{values}}) ",
-                                                        {'cols': cols_string,'values': values_string})
+                    values_string = '\'' +'\', \''.join(map(lambda x: str(x).replace("'", "''"), taxon.values())) +'\''
+                    execute_sql_from_jinja_string(conn,
+                                                  "INSERT INTO taxonomy ({{cols}}) VALUES ({{values}}) ",
+                                                  {'cols': cols_string,'values': values_string})
                     conn.commit()
                     # get id (PK) in taxonomy
-                    cur = execute_sql_from_jinja_string(conn, "SELECT \"id\" FROM taxonomy "
-                                                              "WHERE \"gbifId\" = {{gbifId}}",
+                    cur = execute_sql_from_jinja_string(conn,
+                                                        "SELECT \"id\" FROM taxonomy WHERE \"gbifId\" = {{gbifId}}",
                                                         {'gbifId': gbifId})
                     taxonomyId = cur.fetchall()
                     assert taxonomyId is not None, f"Taxon with gbifId {gbifId} not inserted into the taxonomy table."
@@ -114,12 +120,14 @@ def gbif_match(conn, configParser, log_file):
                     print(f"New fields - values:")
                     [print(key, value) for key, value in taxon.items()]
                     try:
-                        cols_values_to_update = " , ".join(["\"" + str(i) + "\"" + " = " + "'" + str(j) + "'"
+                        cols_values_to_update = " , ".join(["\"" + str(i) + "\"" + " = " + "'" +
+                                                            str(j).replace("'", "''") + "'"
                                                             for (i,j) in taxon.items()])
-                        cur = execute_sql_from_jinja_string(conn,
-                                                            "UPDATE taxonomy SET {{cols_values_to_update}} "
-                                                            "WHERE \"gbifId\" = {{gbifId}}",
-                                                            {'cols_values_to_update': cols_values_to_update, 'gbifId': gbifId})
+                        execute_sql_from_jinja_string(conn,
+                                                      "UPDATE taxonomy SET {{cols_values_to_update}} "
+                                                      "WHERE \"gbifId\" = {{gbifId}}",
+                                                      {'cols_values_to_update': cols_values_to_update,
+                                                       'gbifId': gbifId})
                     except Exception as e:
                         print(e)
             conn.commit()
@@ -131,15 +139,16 @@ def gbif_match(conn, configParser, log_file):
                 match_info = {k: v for k, v in match_info.items() if v is not None}
                 cols_values_to_update = " , ".join(["\"" + str(i) + "\"" + " = " + "'" + str(j) + "'"
                                                     for (i, j) in match_info.items()])
-                cur = execute_sql_from_jinja_string(conn, "UPDATE scientificname SET {{cols}} "
-                                                          "WHERE \"id\" = {{id}}",
-                                                    {'cols': cols_values_to_update, 'id': id})
+                execute_sql_from_jinja_string(conn,
+                                              "UPDATE scientificname SET {{cols}} WHERE \"id\" = {{id}}",
+                                              {'cols': cols_values_to_update, 'id': id})
                 conn.commit()
             except Exception as e:
                 print(e)
 
         end = time.time()
-        n_matched_taxa = f"Number of matched names: {i}/{n_taxa} {i / n_taxa * 100}%."
+        n_matched_taxa_perc = i / n_taxa * 100
+        n_matched_taxa = f"Number of matched names: {i}/{n_taxa} ({n_matched_taxa_perc:.2f}%)."
         print(n_matched_taxa)
         log_file.write(n_matched_taxa + '\n')
         elapsed_time = f"Match to GBIF Backbone performed in {round(end - start)}s."
@@ -197,77 +206,82 @@ def gbif_match(conn, configParser, log_file):
                     rank = "subform"
                 elif rank == "forma":
                     rank = "form"
-                print(f'Try matching {name} with rank {rank}.')
-                # match name
-                gbif_taxon_info = pygbif.name_backbone(name=name, rank=rank, strict=True)
-                # initialize fields
-                gbifId = None
-                scientificName = None
-                kingdom = None
-                taxonomyId = None
-                matchType = None
-                matchConfidence = None
-                try:
-                    gbifId = gbif_taxon_info['usageKey']
-                    scientificName = gbif_taxon_info['scientificName']
-                    kingdom = gbif_taxon_info['kingdom']
-                    matchType = gbif_taxon_info['matchType']
-                    matchConfidence = gbif_taxon_info['confidence']
-                    i += 1
-                except:
-                    log = f"No match found for {name} with rank {rank} (id: {id})."
-                    print(log)
-                    log_file.write(log + '\n')
-                taxon = {'gbifId': gbifId, 'scientificName': scientificName, 'kingdom': kingdom}
-                match_info = {'taxonomyId': taxonomyId,
-                              'lastMatched': lastMatched,
-                              'matchType': matchType,
-                              'matchConfidence': matchConfidence}
-                if gbifId is not None and gbifId not in taxonomy_dict:
-                    print(f"Taxon {taxon['scientificName']} with rank {rank} not in taxonomy.")
-                    # insert taxon in taxonomy table
+                if rank != "informal group" and rank != "division":
+                    print(f'Try matching {name} with rank {rank}.')
+                    # match name
+                    gbif_taxon_info = pygbif.name_backbone(name=name, rank=rank, strict=True)
+                    # initialize fields
+                    gbifId = None
+                    scientificName = None
+                    kingdom = None
+                    taxonomyId = None
+                    matchType = None
+                    matchConfidence = None
                     try:
-                        # insert taxon in taxonomy
-                        cols_string = '\"' + '\", \"'.join(taxon.keys()) + '\"'
-                        values_string = '\'' + '\', \''.join(map(lambda x: str(x), taxon.values())) + '\''
-                        cur = execute_sql_from_jinja_string(conn,
-                                                            "INSERT INTO taxonomy ({{cols}}) VALUES ({{values}}) ",
-                                                            {'cols': cols_string, 'values': values_string})
-                        conn.commit()
-                        # get id (PK) in taxonomy
-                        cur = execute_sql_from_jinja_string(conn,
-                                                            "SELECT id FROM taxonomy WHERE \"gbifId\" = {{gbifId}}",
-                                                            {'gbifId': gbifId})
-                        taxonomyId = cur.fetchall()
-                        assert taxonomyId is not None,\
-                            f"Inserting taxon {taxon['scientificName']} into taxonomy table failed."
-                        assert len(taxonomyId) <= 1,\
-                            f"Many taxa returned for gbifId = {gbifId}. Duplicates detected in taxonomy table."
-                        taxonomyId = taxonomyId[0][0]
-                        print(f"Taxon {taxon['scientificName']} inserted in taxonomy (id = {taxonomyId}).")
-                    except Exception as e:
-                        print(e)
+                        gbifId = gbif_taxon_info['usageKey']
+                        scientificName = gbif_taxon_info['scientificName']
+                        kingdom = gbif_taxon_info['kingdom']
+                        matchType = gbif_taxon_info['matchType']
+                        matchConfidence = gbif_taxon_info['confidence']
+                        i += 1
+                    except:
+                        log = f"No match found for {name} with rank {rank} (id: {id})."
+                        print(log)
+                        log_file.write(log + '\n')
+                    taxon = {'gbifId': gbifId, 'scientificName': scientificName, 'kingdom': kingdom}
+                    match_info = {'taxonomyId': taxonomyId,
+                                  'lastMatched': lastMatched,
+                                  'matchType': matchType,
+                                  'matchConfidence': matchConfidence}
+                    if gbifId is not None and gbifId not in taxonomy_dict:
+                        print(f"Taxon {taxon['scientificName']} with rank {rank} not in taxonomy.")
+                        # insert taxon in taxonomy table
+                        try:
+                            # insert taxon in taxonomy
+                            cols_string = '\"' + '\", \"'.join(taxon.keys()) + '\"'
+                            values_string = '\'' + '\', \''.join(map(lambda x: str(x).replace("'", "''"),
+                                                                     taxon.values())) + '\''
+                            execute_sql_from_jinja_string(conn,
+                                                          "INSERT INTO taxonomy ({{cols}}) VALUES ({{values}}) ",
+                                                          {'cols': cols_string, 'values': values_string})
+                            conn.commit()
+                            # get id (PK) in taxonomy
+                            cur = execute_sql_from_jinja_string(conn,
+                                                                "SELECT id FROM taxonomy WHERE \"gbifId\" = {{gbifId}}",
+                                                                {'gbifId': gbifId})
+                            taxonomyId = cur.fetchall()
+                            assert taxonomyId is not None,\
+                                f"Inserting taxon {taxon['scientificName']} into taxonomy table failed."
+                            assert len(taxonomyId) <= 1,\
+                                f"Many taxa returned for gbifId = {gbifId}. Duplicates detected in taxonomy table."
+                            taxonomyId = taxonomyId[0][0]
+                            print(f"Taxon {taxon['scientificName']} inserted in taxonomy (id = {taxonomyId}).")
+                        except Exception as e:
+                            print(e)
 
-                    # update scientificname with info about match and taxonomyId
-                    try:
-                        print(
-                            f"Add taxonomiyId (FK) and match information to scientificname for {name} "
-                            f"with rank {rank} (id: {id}).")
-                        match_info['taxonomyId'] = taxonomyId
-                        match_info = {k: v for k, v in match_info.items() if v is not None}
-                        cols_values_to_update = " , ".join(["\"" + str(i) + "\"" + " = " + "'" + str(j) + "'"
-                                                            for (i, j) in match_info.items()])
-                        cur = execute_sql_from_jinja_string(conn, "UPDATE scientificname SET {{cols}} "
-                                                                  "WHERE \"id\" = {{id}}",
-                                                            {'cols': cols_values_to_update, 'id': id})
-                        conn.commit()
-                    except Exception as e:
-                        print(e)
+                        # update scientificname with info about match and taxonomyId
+                        try:
+                            print(
+                                f"Add taxonomiyId (FK) and match information to scientificname for {name} "
+                                f"with rank {rank} (id: {id}).")
+                            match_info['taxonomyId'] = taxonomyId
+                            match_info = {k: v for k, v in match_info.items() if v is not None}
+                            cols_values_to_update = " , ".join(["\"" + str(i) + "\"" + " = " + "'" + str(j) + "'"
+                                                                for (i, j) in match_info.items()])
+                            cur = execute_sql_from_jinja_string(conn, "UPDATE scientificname SET {{cols}} "
+                                                                      "WHERE \"id\" = {{id}}",
+                                                                {'cols': cols_values_to_update, 'id': id})
+                            conn.commit()
+                        except Exception as e:
+                            print(e)
+                else:
+                    print(rank + " is an invalid rank. No second attempt to match to GBIF Backbone performed.")
             else:
                 print("No rank available for {name}. No second attempt to match to GBIF Backbone performed.")
 
         end = time.time()
-        n_matched_taxa = f"Number of matched names with rank: {i}/{n_taxa} {i / n_taxa * 100}%."
+        n_matched_taxa_perc = i / n_taxa * 100
+        n_matched_taxa = f"Number of matched names: {i}/{n_taxa} ({n_matched_taxa_perc:.2f}%)."
         print(n_matched_taxa)
         log_file.write(n_matched_taxa + '\n')
         elapsed_time = f"Match to GBIF Backbone with rank performed in {round(end - start)}s."
@@ -287,4 +301,4 @@ if __name__ == "__main__":
     log_filename = "./logs/match_names_to_gbif_backbone_log.csv"
     log_file = open(log_filename, 'w')
 
-    gbif_match(conn = conn, configParser = configParser, log_file= log_file)
+    gbif_match(conn = conn, configParser = configParser, log_file= log_file, unmatched_only=True)
