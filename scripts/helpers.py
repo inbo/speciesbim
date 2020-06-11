@@ -1,11 +1,18 @@
 import os
 
+from jinja2 import Environment
 from jinjasql import JinjaSql
+
+
+def surround_by_quote(a_list):
+    return ['"%s"' % an_element for an_element in a_list]
 
 def execute_sql_from_jinja_string(conn, sql_string, context=None):
     # conn: a (psycopg2) connection object
     # sql_string: query template (Jinja-supported string)
     # context: the context (dict-like) that will be use with the template
+    #
+    # an extra Jinja filter (surround_by_quote) is available and can be useful to double-quote field names
     #
     # returns the cursor object
     #
@@ -13,7 +20,9 @@ def execute_sql_from_jinja_string(conn, sql_string, context=None):
     #
     # execute_sql_from_jinja_string(conn, "SELECT version();")
     # execute_sql_from_jinja_string(conn, "SELECT * FROM biodiv.address LIMIT {{limit}}", {'limit': 5})
-    j = JinjaSql()
+    e = Environment()
+    e.filters["surround_by_quote"] = surround_by_quote
+    j = JinjaSql(env=e)
 
     if context is None:
         context = {}
