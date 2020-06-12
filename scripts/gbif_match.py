@@ -10,12 +10,14 @@ def gbif_match(conn, configParser, log_file, unmatched_only = False):
     with conn:
         # get scientificname table and store it as a dictionary
         if not unmatched_only:
-            cur = execute_sql_from_file(conn, 'get_names_scientificname.sql',
-                                                     {'limit': configParser.get('gbif_match', 'scientificnames-limit')})
+            cur = execute_sql_from_file(conn,
+                                        'get_names_scientificname.sql',
+                                        {'limit': configParser.get('gbif_match', 'scientificnames-limit')})
         else:
             # unmatched names only
             cur = execute_sql_from_file(conn, 'get_names_scientificname_unmatched_only.sql',
                                         {'limit': configParser.get('gbif_match', 'scientificnames-limit')})
+
         cols_scientificname = list(map(lambda x: x[0], cur.description))
         scientificname = cur.fetchall()
         scientificname_dict = dict()
@@ -165,5 +167,4 @@ if __name__ == "__main__":
                             options=f"-c search_path={configParser.get('database', 'schema')}")
     log_filename = "./logs/match_names_to_gbif_backbone_log.csv"
     log_file = open(log_filename, 'w')
-
     gbif_match(conn = conn, configParser = configParser, log_file= log_file, unmatched_only=True)
