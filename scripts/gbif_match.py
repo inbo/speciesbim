@@ -94,7 +94,7 @@ def gbif_match(conn, configParser, log_file, unmatched_only = False):
                     conn.commit()
                     # get id (PK) in taxonomy
                     cur = execute_sql_from_jinja_string(conn,
-                                                        "SELECT \"id\" FROM taxonomy WHERE \"gbifId\" = {{gbifId}}",
+                                                        """SELECT id FROM taxonomy WHERE "gbifId" = {{ gbifId }}""",
                                                         {'gbifId': gbifId})
                     taxonomyId = cur.fetchall()
                     assert taxonomyId is not None, f"Taxon with gbifId {gbifId} not inserted into the taxonomy table."
