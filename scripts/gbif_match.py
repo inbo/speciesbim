@@ -6,17 +6,17 @@ import configparser
 from helpers import execute_sql_from_file
 from helpers import execute_sql_from_jinja_string
 
-def gbif_match(conn, configParser, log_file, unmatched_only = True):
+def gbif_match(conn, config_parser, log_file, unmatched_only = True):
     with conn:
         # get scientificname table and store it as a dictionary
         if not unmatched_only:
             cur = execute_sql_from_file(conn,
                                         'get_names_scientificname.sql',
-                                        {'limit': configParser.get('gbif_match', 'scientificnames-limit')})
+                                        {'limit': config_parser.get('gbif_match', 'scientificnames-limit')})
         else:
             # unmatched names only
             cur = execute_sql_from_file(conn, 'get_names_scientificname_unmatched_only.sql',
-                                        {'limit': configParser.get('gbif_match', 'scientificnames-limit')})
+                                        {'limit': config_parser.get('gbif_match', 'scientificnames-limit')})
 
         cols_scientificname = list(map(lambda x: x[0], cur.description))
         scientificname = cur.fetchall()
@@ -157,14 +157,14 @@ def gbif_match(conn, configParser, log_file, unmatched_only = True):
 
 if __name__ == "__main__":
 
-    configParser = configparser.RawConfigParser()
-    configParser.read(r'config.ini')
-    conn = psycopg2.connect(dbname=configParser.get('database', 'dbname'),
-                            user=configParser.get('database', 'user'),
-                            password=configParser.get('database', 'password'),
-                            host=configParser.get('database', 'host'),
-                            port=int(configParser.get('database', 'port')),
-                            options=f"-c search_path={configParser.get('database', 'schema')}")
+    config_parser = configparser.RawConfigParser()
+    config_parser.read(r'config.ini')
+    conn = psycopg2.connect(dbname=config_parser.get('database', 'dbname'),
+                            user=config_parser.get('database', 'user'),
+                            password=config_parser.get('database', 'password'),
+                            host=config_parser.get('database', 'host'),
+                            port=int(config_parser.get('database', 'port')),
+                            options=f"-c search_path={config_parser.get('database', 'schema')}")
     log_filename = "./logs/match_names_to_gbif_backbone_log.csv"
     log_file = open(log_filename, 'w')
-    gbif_match(conn = conn, configParser = configParser, log_file= log_file, unmatched_only=True)
+    gbif_match(conn = conn, config_parser = config_parser, log_file= log_file, unmatched_only=True)

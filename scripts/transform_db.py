@@ -12,15 +12,15 @@ import gbif_match
 from helpers import execute_sql_from_file
 
 # TODO: make sure the script outputs an error if the config file is not found
-configParser = configparser.RawConfigParser()
-configParser.read(r'config.ini')
+config_parser = configparser.RawConfigParser()
+config_parser.read(r'config.ini')
 
-conn = psycopg2.connect(dbname=configParser.get('database', 'dbname'),
-                        user=configParser.get('database', 'user'),
-                        password=configParser.get('database', 'password'),
-                        host=configParser.get('database', 'host'),
-                        port=int(configParser.get('database', 'port')),
-                        options=f"-c search_path={configParser.get('database', 'schema')}")
+conn = psycopg2.connect(dbname=config_parser.get('database', 'dbname'),
+                        user=config_parser.get('database', 'user'),
+                        password=config_parser.get('database', 'password'),
+                        host=config_parser.get('database', 'host'),
+                        port=int(config_parser.get('database', 'port')),
+                        options=f"-c search_path={config_parser.get('database', 'schema')}")
 
 log_filename = "./logs/transform_db_log.csv"
 log_file = open(log_filename, 'w')
@@ -40,11 +40,11 @@ with conn:
     print(message)
     log_file.write(message + '\n')
     execute_sql_from_file(conn, 'populate_scientificname.sql',
-                          {'limit': configParser.get('transform_db', 'scientificnames-limit')})
+                          {'limit': config_parser.get('transform_db', 'scientificnames-limit')})
 
     message = "Step 4: populate taxonomy table with matches to GBIF Backbone and update scientificname table"
     print(message)
     log_file.write(message + '\n')
-    gbif_match.gbif_match(conn, configParser=configParser, log_file = log_file, unmatched_only=False)
+    gbif_match.gbif_match(conn, configParser=config_parser, log_file = log_file, unmatched_only=False)
 
 log_file.close()
