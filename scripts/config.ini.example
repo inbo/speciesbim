@@ -8,4 +8,9 @@ schema = biodiv
 
 [transform_db]
 # scientificnames-limit: number | ALL
-scientificnames-limit = 200
+scientificnames-limit = 20
+
+[gbif_match]
+# scientificnames-limit: number | empty
+# scientificnames-limit =
+scientificnames-limit = 30
