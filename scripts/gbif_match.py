@@ -85,11 +85,12 @@ def gbif_match(conn, configParser, log_file, unmatched_only = False):
                 # insert taxon in taxonomy table
                 try:
                     # insert taxon in taxonomy
-                    cols_string = '\"'+'\", \"'.join(taxon.keys())+'\"'
-                    values_string = '\'' +'\', \''.join(map(lambda x: str(x).replace("'", "''"), taxon.values())) +'\''
-                    execute_sql_from_jinja_string(conn,
-                                                  "INSERT INTO taxonomy ({{cols}}) VALUES ({{values}}) ",
-                                                  {'cols': cols_string,'values': values_string})
+                    execute_sql_from_jinja_string(
+                        conn,
+                        """INSERT INTO taxonomy ({{ col_names | surround_by_quote | join(', ') | sqlsafe }}) VALUES {{ values | inclause }}""",
+                        {'col_names': tuple(taxon.keys()),
+                         'values': tuple(taxon.values())}
+                    )
                     conn.commit()
                     # get id (PK) in taxonomy
                     cur = execute_sql_from_jinja_string(conn,
@@ -120,28 +121,25 @@ def gbif_match(conn, configParser, log_file, unmatched_only = False):
                     print(f"New fields - values:")
                     [print(key, value) for key, value in taxon.items()]
                     try:
-                        cols_values_to_update = " , ".join(["\"" + str(i) + "\"" + " = " + "'" +
-                                                            str(j).replace("'", "''") + "'"
-                                                            for (i,j) in taxon.items()])
-                        execute_sql_from_jinja_string(conn,
-                                                      "UPDATE taxonomy SET {{cols_values_to_update}} "
-                                                      "WHERE \"gbifId\" = {{gbifId}}",
-                                                      {'cols_values_to_update': cols_values_to_update,
-                                                       'gbifId': gbifId})
+                        template = """ UPDATE taxonomy SET """ \
+                                   + ", ".join([f'"{i}"' + ' = ' + '{{ ' + str(i) + ' }}' for i in taxon.keys()]) \
+                                   + """ WHERE "gbifId" = {{ gbifId }} """
+                        execute_sql_from_jinja_string(conn, sql_string=template, context=taxon)
                     except Exception as e:
                         print(e)
             conn.commit()
 
             # update scientificname with info about match and taxonomyId
             try:
-                print(f"Add taxonomiyId (FK) if present and match information to scientificname for {name} (id: {id}).")
+                print(f"Add match information and taxonomiyId, if present, to scientificname for {name} (id: {id}).")
                 match_info['taxonomyId'] = taxonomyId
                 match_info = {k: v for k, v in match_info.items() if v is not None}
-                cols_values_to_update = " , ".join(["\"" + str(i) + "\"" + " = " + "'" + str(j) + "'"
-                                                    for (i, j) in match_info.items()])
-                execute_sql_from_jinja_string(conn,
-                                              "UPDATE scientificname SET {{cols}} WHERE \"id\" = {{id}}",
-                                              {'cols': cols_values_to_update, 'id': id})
+                template = """ UPDATE scientificname SET """ \
+                           + ", ".join([f'"{i}"' + ' = ' + '{{ ' + str(i) + ' }}' for i in match_info.keys()]) \
+                           + """ WHERE "id" = {{ id }} """
+                data = match_info.copy()
+                data['id'] = id
+                execute_sql_from_jinja_string(conn,sql_string=template, context=data)
                 conn.commit()
             except Exception as e:
                 print(e)

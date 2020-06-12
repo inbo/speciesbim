@@ -1,2 +1,4 @@
 SELECT * FROM scientificname
-LIMIT {{ limit }};
+{% if limit %}
+LIMIT {{ limit }}
+{% endif %};
