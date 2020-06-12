@@ -6,7 +6,7 @@ import configparser
 from helpers import execute_sql_from_file
 from helpers import execute_sql_from_jinja_string
 
-def gbif_match(conn, configParser, log_file, unmatched_only = False):
+def gbif_match(conn, configParser, log_file, unmatched_only = True):
     with conn:
         # get scientificname table and store it as a dictionary
         if not unmatched_only:

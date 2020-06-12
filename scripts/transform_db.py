@@ -13,7 +13,7 @@ from helpers import execute_sql_from_file
 
 # TODO: make sure the script outputs an error if the config file is not found
 configParser = configparser.RawConfigParser()
-configParser.read(r'scripts/config.ini')
+configParser.read(r'config.ini')
 
 conn = psycopg2.connect(dbname=configParser.get('database', 'dbname'),
                         user=configParser.get('database', 'user'),
@@ -45,6 +45,6 @@ with conn:
     message = "Step 4: populate taxonomy table with matches to GBIF Backbone and update scientificname table"
     print(message)
     log_file.write(message + '\n')
-    gbif_match.gbif_match(conn, configParser=configParser, log_file = log_file)
+    gbif_match.gbif_match(conn, configParser=configParser, log_file = log_file, unmatched_only=False)
 
 log_file.close()
