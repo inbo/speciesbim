@@ -13,16 +13,18 @@ import gbif_match
 from helpers import execute_sql_from_file
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-CONFIG_FILE_NAME = 'config.ini'
+
+CONFIG_FILE_PATH = './config.ini'
+LOG_FILE_PATH = "./logs/transform_db_log.csv"
 
 # TODO: make sure the script outputs an error if the config file is not found
 config_parser = configparser.RawConfigParser()
 
 try:
-    with open(os.path.join(__location__, CONFIG_FILE_NAME)) as f:
+    with open(os.path.join(__location__, CONFIG_FILE_PATH)) as f:
         config_parser.read_file(f)
 except IOError:
-    raise Exception(f"Configuration file ({CONFIG_FILE_NAME}) not found")
+    raise Exception(f"Configuration file ({CONFIG_FILE_PATH}) not found")
 
 conn = psycopg2.connect(dbname=config_parser.get('database', 'dbname'),
                         user=config_parser.get('database', 'user'),
@@ -31,29 +33,25 @@ conn = psycopg2.connect(dbname=config_parser.get('database', 'dbname'),
                         port=int(config_parser.get('database', 'port')),
                         options=f"-c search_path={config_parser.get('database', 'schema')}")
 
-log_filename = "./logs/transform_db_log.csv"
-log_file = open(log_filename, 'w')
+with open(os.path.join(__location__, LOG_FILE_PATH), 'w') as log_file:
+    with conn:
+        message = "Step 1: Drop our new tables if they already exists (idempotent script)"
+        print(message)
+        log_file.write(message + '\n')
+        execute_sql_from_file(conn, 'drop_new_tables_if_exists.sql')
 
-with conn:
-    message = "Step 1: Drop our new tables if they already exists (idempotent script)"
-    print(message)
-    log_file.write(message + '\n')
-    execute_sql_from_file(conn, 'drop_new_tables_if_exists.sql')
+        message = "Step 2: create the new tables"
+        print(message)
+        log_file.write(message + '\n')
+        execute_sql_from_file(conn, 'create_new_tables.sql')
 
-    message = "Step 2: create the new tables"
-    print(message)
-    log_file.write(message + '\n')
-    execute_sql_from_file(conn, 'create_new_tables.sql')
+        message = "Step 3: populate the scientifcname tables based on the actual content"
+        print(message)
+        log_file.write(message + '\n')
+        execute_sql_from_file(conn, 'populate_scientificname.sql',
+                              {'limit': config_parser.get('transform_db', 'scientificnames-limit')})
 
-    message = "Step 3: populate the scientifcname tables based on the actual content"
-    print(message)
-    log_file.write(message + '\n')
-    execute_sql_from_file(conn, 'populate_scientificname.sql',
-                          {'limit': config_parser.get('transform_db', 'scientificnames-limit')})
-
-    message = "Step 4: populate taxonomy table with matches to GBIF Backbone and update scientificname table"
-    print(message)
-    log_file.write(message + '\n')
-    gbif_match.gbif_match(conn, configParser=config_parser, log_file = log_file, unmatched_only=False)
-
-log_file.close()
+        message = "Step 4: populate taxonomy table with matches to GBIF Backbone and update scientificname table"
+        print(message)
+        log_file.write(message + '\n')
+        gbif_match.gbif_match(conn, config_parser=config_parser, log_file=log_file, unmatched_only=False)
