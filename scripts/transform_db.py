@@ -4,6 +4,7 @@
 # Before running this script, make sure you have a config.ini file in the current directory
 # It should contain DB connection information (set up an external tunnel if necessary)
 # You can start by copying config.ini.example to config.ini and change its content.
+import os
 
 import psycopg2
 import configparser
@@ -11,9 +12,17 @@ import gbif_match
 
 from helpers import execute_sql_from_file
 
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+CONFIG_FILE_NAME = 'config.ini'
+
 # TODO: make sure the script outputs an error if the config file is not found
 config_parser = configparser.RawConfigParser()
-config_parser.read(r'config.ini')
+
+try:
+    with open(os.path.join(__location__, CONFIG_FILE_NAME)) as f:
+        config_parser.read_file(f)
+except IOError:
+    raise Exception(f"Configuration file ({CONFIG_FILE_NAME}) not found")
 
 conn = psycopg2.connect(dbname=config_parser.get('database', 'dbname'),
                         user=config_parser.get('database', 'user'),
