@@ -1,11 +1,43 @@
+import configparser
 import os
 
+import psycopg2
 from jinja2 import Environment
 from jinjasql import JinjaSql
+
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+CONFIG_FILE_PATH = './config.ini'
+
+
+def get_config():
+    """ Read config.ini (in the same directory than this script) and returns a configparser """
+    config_parser = configparser.RawConfigParser()
+
+    try:
+        with open(os.path.join(__location__, CONFIG_FILE_PATH)) as f:
+            config_parser.read_file(f)
+    except IOError:
+        raise Exception(f"Configuration file ({CONFIG_FILE_PATH}) not found")
+
+    return config_parser
+
+
+def get_database_connection():
+    """ Read config.ini (in the same directory than this script) and returns a (psycopg2) connection object"""
+    config_parser = get_config()
+
+    return psycopg2.connect(dbname=config_parser.get('database', 'dbname'),
+                            user=config_parser.get('database', 'user'),
+                            password=config_parser.get('database', 'password'),
+                            host=config_parser.get('database', 'host'),
+                            port=int(config_parser.get('database', 'port')),
+                            options=f"-c search_path={config_parser.get('database', 'schema')}")
 
 
 def surround_by_quote(a_list):
     return ['"%s"' % an_element for an_element in a_list]
+
 
 def execute_sql_from_jinja_string(conn, sql_string, context=None):
     # conn: a (psycopg2) connection object
