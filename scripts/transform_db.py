@@ -6,34 +6,34 @@
 # You can start by copying config.ini.example to config.ini and change its content.
 import os
 import gbif_match
+import logging
 
-from helpers import execute_sql_from_file, get_database_connection, get_config
+from helpers import execute_sql_from_file, get_database_connection, get_config, setup_log_file
 
-__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 LOG_FILE_PATH = "./logs/transform_db_log.csv"
 
+setup_log_file(LOG_FILE_PATH)
+conn = get_database_connection()
+config = get_config()
 
-with open(os.path.join(__location__, LOG_FILE_PATH), 'w') as log_file:
-    conn = get_database_connection()
-    config = get_config()
-    with conn:
-        message = "Step 1: Drop our new tables if they already exists (idempotent script)"
-        print(message)
-        log_file.write(message + '\n')
-        execute_sql_from_file(conn, 'drop_new_tables_if_exists.sql')
+with conn:
+    message = "Step 1: Drop our new tables if they already exists (idempotent script)"
+    print(message)
+    logging.info(message)
+    execute_sql_from_file(conn, 'drop_new_tables_if_exists.sql')
 
-        message = "Step 2: create the new tables"
-        print(message)
-        log_file.write(message + '\n')
-        execute_sql_from_file(conn, 'create_new_tables.sql')
+    message = "Step 2: create the new tables"
+    print(message)
+    logging.info(message)
+    execute_sql_from_file(conn, 'create_new_tables.sql')
 
-        message = "Step 3: populate the scientifcname tables based on the actual content"
-        print(message)
-        log_file.write(message + '\n')
-        execute_sql_from_file(conn, 'populate_scientificname.sql',
-                              {'limit': config.get('transform_db', 'scientificnames-limit')})
+    message = "Step 3: populate the scientifcname tables based on the actual content"
+    print(message)
+    logging.info(message)
+    execute_sql_from_file(conn, 'populate_scientificname.sql',
+                          {'limit': config.get('transform_db', 'scientificnames-limit')})
 
-        message = "Step 4: populate taxonomy table with matches to GBIF Backbone and update scientificname table"
-        print(message)
-        log_file.write(message + '\n')
-        gbif_match.gbif_match(conn, config_parser=config, log_file=log_file, unmatched_only=False)
+    message = "Step 4: populate taxonomy table with matches to GBIF Backbone and update scientificname table"
+    print(message)
+    logging.info(message)
+    gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)

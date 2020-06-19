@@ -1,13 +1,13 @@
+import logging
+
 import pygbif
-import psycopg2
 import time
 import datetime
-import configparser
-from helpers import execute_sql_from_file, get_database_connection, get_config
+from helpers import execute_sql_from_file, get_database_connection, get_config, setup_log_file
 from helpers import execute_sql_from_jinja_string
 
 
-def gbif_match(conn, config_parser, log_file, unmatched_only=True):
+def gbif_match(conn, config_parser, unmatched_only=True):
     # get scientificname table and store it as a dictionary
     if not unmatched_only:
         cur = execute_sql_from_file(conn,
@@ -39,7 +39,7 @@ def gbif_match(conn, config_parser, log_file, unmatched_only=True):
     print(f"Number of taxa in scientificname table: {n_taxa}.")
     log = f"Match names (scientificName + authorship) to GBIF Backbone. "
     print(log)
-    log_file.write(log + '\n')
+    logging.info(log)
 
     start = time.time()
     i = 0
@@ -75,7 +75,7 @@ def gbif_match(conn, config_parser, log_file, unmatched_only=True):
         except:
             log = f"No match found for {name} (id: {id})."
             print(log)
-            log_file.write(log + '\n')
+            logging.warning(log)
 
         taxon = {'gbifId': gbifId, 'scientificName': scientificName, 'kingdom': kingdom}
         match_info = {'taxonomyId': taxonomyId,
@@ -150,16 +150,15 @@ def gbif_match(conn, config_parser, log_file, unmatched_only=True):
     n_matched_taxa_perc = i / n_taxa * 100
     n_matched_taxa = f"Number of matched names: {i}/{n_taxa} ({n_matched_taxa_perc:.2f}%)."
     print(n_matched_taxa)
-    log_file.write(n_matched_taxa + '\n')
+    logging.info(n_matched_taxa)
     elapsed_time = f"Match to GBIF Backbone performed in {round(end - start)}s."
     print(elapsed_time)
-    log_file.write(elapsed_time + '\n')
+    logging.info(elapsed_time)
 
 
 if __name__ == "__main__":
-    conn = get_database_connection()
+    connection = get_database_connection()
     config = get_config()
+    setup_log_file("./logs/match_names_to_gbif_backbone_log.csv")
 
-    log_filename = "./logs/match_names_to_gbif_backbone_log.csv"
-    log_file = open(log_filename, 'w')
-    gbif_match(conn=conn, config_parser=config, log_file=log_file, unmatched_only=True)
+    gbif_match(conn=connection, config_parser=config, unmatched_only=True)

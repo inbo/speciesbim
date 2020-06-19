@@ -1,4 +1,5 @@
 import configparser
+import logging
 import os
 
 import psycopg2
@@ -9,6 +10,12 @@ __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file
 
 CONFIG_FILE_PATH = './config.ini'
 
+
+def setup_log_file(relative_path):
+    logging.basicConfig(filename=os.path.join(__location__, relative_path),
+                        level=logging.INFO,
+                        filemode='w',
+                        format='%(asctime)s | %(message)s')
 
 def get_config():
     """ Read config.ini (in the same directory than this script) and returns a configparser """
