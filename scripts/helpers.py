@@ -45,6 +45,7 @@ def get_database_connection():
     conn.autocommit = True
     return conn
 
+
 def surround_by_quote(a_list):
     return ['"%s"' % an_element for an_element in a_list]
 
