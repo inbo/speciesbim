@@ -7,21 +7,21 @@ from helpers import execute_sql_from_file, get_database_connection, get_config, 
 from helpers import execute_sql_from_jinja_string
 
 
-def _update_match_info(conn, match_info, taxonomyId, name, row_id):
+def _update_match_info(conn, match_info, scientificname_row_id):
     # update scientificname with info about match and taxonomyId
-    print(f"Add match information and taxonomiyId, if present, to scientificname for {name} (id: {row_id}).")
-    match_info['taxonomyId'] = taxonomyId
     match_info = {k: v for k, v in match_info.items() if v is not None}
     template = """ UPDATE scientificname SET """ \
                + ", ".join([f'"{i}"' + ' = ' + '{{ ' + str(i) + ' }}' for i in match_info.keys()]) \
                + """ WHERE "id" = {{ id }} """
     data = match_info.copy()
-    data['id'] = row_id
+    data['id'] = scientificname_row_id
     execute_sql_from_jinja_string(conn, sql_string=template, context=data)
 
 
-def _update_taxonomy_if_needed(conn, taxonomy_dict, gbifId, taxon):
+def _update_taxonomy_if_needed(conn, taxonomy_dict, taxon):
     # GBIF knows about this taxon, and so we are. Do we need to update or do we already ahve the latest data
+    gbifId = taxon['gbifId']
+
     taxonomyId = taxonomy_dict[gbifId]['id']
     taxonomy_dict_to_compare = {k: taxonomy_dict[gbifId][k] for k in taxon}
     taxonomy_dict_to_change = taxonomy_dict_to_compare.copy()
@@ -45,7 +45,9 @@ def _update_taxonomy_if_needed(conn, taxonomy_dict, gbifId, taxon):
         return taxonomyId
 
 
-def _insert_new_entry_taxonomy(conn, taxon, gbifId): # TODO: is gbifID necessary here? I think it also appears in taxon, no?
+def _insert_new_entry_taxonomy(conn, taxon):
+    gbifId = taxon['gbifId']
+
     print(f"Taxon {taxon['scientificName']} currently not present in the taxonomy table.")
     # insert taxon in taxonomy table
 
@@ -122,39 +124,39 @@ def gbif_match(conn, config_parser, unmatched_only=True):
         # match name
         gbif_taxon_info = pygbif.name_backbone(name=name, strict=True)
 
-        # initialize fields
-        gbifId = None
-        scientificName = None
-        kingdom = None
-        taxonomyId = None
-        matchType = None
-        matchConfidence = None
-        try:
-            gbifId = gbif_taxon_info['usageKey']
-            scientificName = gbif_taxon_info['scientificName']
-            kingdom = gbif_taxon_info['kingdom']
-            matchType = gbif_taxon_info['matchType']
-            matchConfidence = gbif_taxon_info['confidence']
+        match_info = {
+            'taxonomyId': None,
+            'lastMatched': last_matched,
+            'matchType': None,
+            'matchConfidence': None
+        }
+
+        if gbif_taxon_info['matchType'] != 'NONE':
             match_count += 1
-        except KeyError:  # TODO: is it the best way to test the match is successful?
+
+            gbifId = gbif_taxon_info.get('usageKey')
+            scientificName = gbif_taxon_info.get('scientificName')
+            kingdom = gbif_taxon_info.get('kingdom')
+
+            match_info['matchType'] = gbif_taxon_info.get('matchType')
+            match_info['matchConfidence'] = gbif_taxon_info.get('confidence')
+
+            taxon = {'gbifId': gbifId, 'scientificName': scientificName, 'kingdom': kingdom}
+
+            if gbifId not in taxonomy_dict:
+                # GBIF knows about this taxon, and we don't
+                match_info['taxonomyId'] = _insert_new_entry_taxonomy(conn, taxon)
+            else:
+                # We already know about it, something to update
+                match_info['taxonomyId'] = _update_taxonomy_if_needed(conn, taxonomy_dict, taxon)
+
+        else:
             log = f"No match found for {name} (id: {row_id})."
             print(log)
             logging.warning(log)
 
-        taxon = {'gbifId': gbifId, 'scientificName': scientificName, 'kingdom': kingdom}
-
-        if gbifId is not None and gbifId not in taxonomy_dict:
-            # GBIF knows about this taxon, and we don't
-            taxonomyId = _insert_new_entry_taxonomy(conn, taxon, gbifId)
-        elif gbifId is not None:
-            taxonomyId = _update_taxonomy_if_needed(conn, taxonomy_dict, gbifId, taxon)
-
-        match_info = {'taxonomyId': taxonomyId,
-                      'lastMatched': last_matched,
-                      'matchType': matchType,
-                      'matchConfidence': matchConfidence}
-
-        _update_match_info(conn, match_info, taxonomyId, name, row_id)
+        print(f"Add match information and taxonomiyId, if present, to scientificname for {name} (id: {row_id}).")
+        _update_match_info(conn, match_info, row_id)
 
     # Logging and statistics
     end = time.time()
