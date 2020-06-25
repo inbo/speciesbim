@@ -19,7 +19,7 @@ def _update_match_info(conn, match_info, scientificname_row_id):
 
 
 def _update_taxonomy_if_needed(conn, taxonomy_dict, taxon):
-    # GBIF knows about this taxon, and so we are. Do we need to update or do we already ahve the latest data
+    # GBIF knows about this taxon, and so we are. Do we need to update or do we already have the latest data
     gbifId = taxon['gbifId']
 
     taxonomyId = taxonomy_dict[gbifId]['id']
