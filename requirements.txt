@@ -3,3 +3,4 @@ Jinja2==2.11.2
 jinjasql==0.1.8
 MarkupSafe==1.1.1
 psycopg2==2.8.5
+pygbif==0.4.0

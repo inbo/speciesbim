@@ -7,5 +7,11 @@ port = 5433
 schema = biodiv
 
 [transform_db]
-# scientificnames-limit: number | ALL
+# scientificnames-limit: number | empty for all
+# scientificnames-limit =
 scientificnames-limit = 200
+
+[gbif_match]
+# scientificnames-limit: number | empty for all
+# scientificnames-limit =
+scientificnames-limit = 100

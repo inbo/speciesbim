@@ -4,30 +4,36 @@
 # Before running this script, make sure you have a config.ini file in the current directory
 # It should contain DB connection information (set up an external tunnel if necessary)
 # You can start by copying config.ini.example to config.ini and change its content.
+import os
+import gbif_match
+import logging
 
-import psycopg2
-import configparser
+from helpers import execute_sql_from_file, get_database_connection, get_config, setup_log_file
 
-from helpers import execute_sql_from_file
+LOG_FILE_PATH = "./logs/transform_db_log.csv"
 
-# TODO: make sure the script outputs an error if the config file is not found
-configParser = configparser.RawConfigParser()
-configParser.read(r'scripts/config.ini')
-
-conn = psycopg2.connect(dbname=configParser.get('database', 'dbname'),
-                        user=configParser.get('database', 'user'),
-                        password=configParser.get('database', 'password'),
-                        host=configParser.get('database', 'host'),
-                        port=int(configParser.get('database', 'port')),
-                        options=f"-c search_path={configParser.get('database', 'schema')}")
+setup_log_file(LOG_FILE_PATH)
+conn = get_database_connection()
+config = get_config()
 
 with conn:
-    print("Step 1: Drop our new tables if they already exists (idempotent script)")
+    message = "Step 1: Drop our new tables if they already exists (idempotent script)"
+    print(message)
+    logging.info(message)
     execute_sql_from_file(conn, 'drop_new_tables_if_exists.sql')
 
-    print("Step 2: create the new tables")
+    message = "Step 2: create the new tables"
+    print(message)
+    logging.info(message)
     execute_sql_from_file(conn, 'create_new_tables.sql')
 
-    print("Step 3: populate the scientifcname tables based on the actual content")
+    message = "Step 3: populate the scientifcname tables based on the actual content"
+    print(message)
+    logging.info(message)
     execute_sql_from_file(conn, 'populate_scientificname.sql',
-                          {'limit': configParser.get('transform_db', 'scientificnames-limit')})
+                          {'limit': config.get('transform_db', 'scientificnames-limit')})
+
+    message = "Step 4: populate taxonomy table with matches to GBIF Backbone and update scientificname table"
+    print(message)
+    logging.info(message)
+    gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)
