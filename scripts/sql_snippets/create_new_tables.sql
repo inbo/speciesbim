@@ -7,7 +7,7 @@ CREATE TABLE taxonomy (
     "parentId" integer  -- internal (to the DB) pointer
 );
 
-CREATE TYPE gbifmatchtype AS ENUM ('EXACT', 'FUZZY', 'HIGHERRANK');
+CREATE TYPE gbifmatchtype AS ENUM ('EXACT', 'FUZZY', 'HIGHERRANK', 'NONE');
 -- table contains scientificnames in use in the database, a link to "taxonomy" and metadata about the taxonomic match at GBIF
 CREATE TABLE scientificname (
     "id" serial PRIMARY KEY,
