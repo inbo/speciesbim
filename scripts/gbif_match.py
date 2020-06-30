@@ -18,30 +18,31 @@ def _update_match_info(conn, match_info, scientificname_row_id):
     execute_sql_from_jinja_string(conn, sql_string=template, context=data)
 
 
-def _update_taxonomy_if_needed(conn, taxonomy_dict, taxon):
+def _update_taxonomy_if_needed(conn, taxon_in_taxonomy, taxon):
     # GBIF knows about this taxon, and so we are. Do we need to update or do we already have the latest data
     gbifId = taxon['gbifId']
 
-    taxonomyId = taxonomy_dict[gbifId]['id']
-    taxonomy_dict_to_compare = {k: taxonomy_dict[gbifId][k] for k in taxon}
-    taxonomy_dict_to_change = taxonomy_dict_to_compare.copy()
-    if taxon == taxonomy_dict_to_compare:
+    taxonomyId = taxon_in_taxonomy.get('id')
+    taxonomy_fields_to_compare = {k: taxon_in_taxonomy[k] for k in taxon}
+    taxonomy_fields_to_change = taxonomy_fields_to_compare.copy()
+    if taxon == taxonomy_fields_to_compare:
         print(f"Taxon {taxon['scientificName']} already present in taxonomy (id = {taxonomyId}).")
     else:
         # unchanged fields
-        keys_same_values = dict(taxonomy_dict_to_compare.items() & taxon.items()).keys()
+        keys_same_values = dict(taxonomy_fields_to_compare.items() & taxon.items()).keys()
         # remove unchanged fields
-        for key in keys_same_values: del taxonomy_dict_to_change[key]
+        for key in keys_same_values: del taxonomy_fields_to_change[key]
         for key in keys_same_values: del taxon[key]
         print(f"Fields - values to change:")
-        [print(key, value) for key, value in taxonomy_dict_to_change.items()]
+        [print(key, value) for key, value in taxonomy_fields_to_change.items()]
         print(f"New fields - values:")
         [print(key, value) for key, value in taxon.items()]
-
+        context_to_query = taxon
+        context_to_query['gbifId'] = gbifId
         template = """ UPDATE taxonomy SET """ \
                    + ", ".join([f'"{i}"' + ' = ' + '{{ ' + str(i) + ' }}' for i in taxon.keys()]) \
                    + """ WHERE "gbifId" = {{ gbifId }} """
-        execute_sql_from_jinja_string(conn, sql_string=template, context=taxon)
+        execute_sql_from_jinja_string(conn, sql_string=template, context=context_to_query)
         return taxonomyId
 
 
