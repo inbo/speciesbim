@@ -71,6 +71,21 @@ def _insert_new_entry_taxonomy(conn, taxon):
     print(f"Taxon {taxon['scientificName']} inserted in taxonomy (id = {taxonomyId}).")
     return taxonomyId
 
+def _get_taxon_from_taxonomy_by_gbifId(conn, gbifId):
+
+    # get taxon information from taxonomy by searching on gbifId
+    gbifId_to_search = {'gbifId': gbifId}
+    template = """SELECT * FROM taxonomy WHERE "gbifId" = {{ gbifId }} """
+    taxon_cur = execute_sql_from_jinja_string(conn, sql_string=template, context=gbifId_to_search)
+    taxon_values = taxon_cur.fetchall()
+    cols_taxonomy = list(map(lambda x: x[0], taxon_cur.description))
+
+    assert len(taxon_values) <= 1, f"Multiple taxa with gbifId = {gbifId} in taxonomy."
+    if len(taxon_values) == 1:
+        taxon = dict(zip(cols_taxonomy, taxon_values[0]))
+    else:
+        taxon = dict.fromkeys(cols_taxonomy)
+    return taxon
 
 # To remove (or at least improve with dict_cursor) later during refactoring
 # def _get_taxonomy_as_dict(conn):
