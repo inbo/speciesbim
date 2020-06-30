@@ -100,7 +100,7 @@ def gbif_match(conn, config_parser, unmatched_only=True):
                                     dict_cursor=True)
 
     # get taxonomy table and store it as a dictionary
-    taxonomy_dict = _get_taxonomy_as_dict(conn)
+    # taxonomy_dict = _get_taxonomy_as_dict(conn)
 
     total_sn_count = scientificname_cur.rowcount
     print(f"Number of taxa in scientificname table: {total_sn_count}.")
