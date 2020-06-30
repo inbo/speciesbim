@@ -73,17 +73,17 @@ def _insert_new_entry_taxonomy(conn, taxon):
 
 
 # To remove (or at least improve with dict_cursor) later during refactoring
-def _get_taxonomy_as_dict(conn):
-    taxonomy_cur = execute_sql_from_file(conn, 'get_taxa_taxonomy.sql')
-    taxonomy = taxonomy_cur.fetchall()
-    cols_taxonomy = list(map(lambda x: x[0], taxonomy_cur.description))
-    taxonomy_dict = dict()
-    if taxonomy is not None:
-        for row in taxonomy:
-            # use gbifID as key of taxonomy_dict
-            taxonomy_dict[row[1]] = dict(zip(cols_taxonomy, row))
-
-    return taxonomy_dict
+# def _get_taxonomy_as_dict(conn):
+#     taxonomy_cur = execute_sql_from_file(conn, 'get_taxa_taxonomy.sql')
+#     taxonomy = taxonomy_cur.fetchall()
+#     cols_taxonomy = list(map(lambda x: x[0], taxonomy_cur.description))
+#     taxonomy_dict = dict()
+#     if taxonomy is not None:
+#         for row in taxonomy:
+#             # use gbifID as key of taxonomy_dict
+#             taxonomy_dict[row[1]] = dict(zip(cols_taxonomy, row))
+#
+#     return taxonomy_dict
 
 
 def gbif_match(conn, config_parser, unmatched_only=True):
