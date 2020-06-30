@@ -33,7 +33,8 @@ with conn:
     execute_sql_from_file(conn, 'populate_scientificname.sql',
                           {'limit': config.get('transform_db', 'scientificnames-limit')})
 
-    message = "Step 4: populate taxonomy table with matches to GBIF Backbone and update scientificname table"
+    message = "Step 4: populate taxonomy table with matches to GBIF Backbone and related backbone tree " +\
+              "and update scientificname table"
     print(message)
     logging.info(message)
     gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)
