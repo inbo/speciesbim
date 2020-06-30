@@ -3,7 +3,8 @@ CREATE TABLE taxonomy (
     "id" serial PRIMARY KEY,  -- internal (to the DB) ID
     "gbifId" integer NOT NULL, -- ID at GBIF
     "scientificName" character varying(255), -- as returned by GBIF
-    "kingdom" character varying(50)
+    "kingdom" character varying(50),
+    "parentId" integer  -- internal (to the DB) pointer
 );
 
 CREATE TYPE gbifmatchtype AS ENUM ('EXACT', 'FUZZY', 'HIGHERRANK');
