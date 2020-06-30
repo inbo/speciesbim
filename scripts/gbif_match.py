@@ -226,4 +226,4 @@ if __name__ == "__main__":
     config = get_config()
     setup_log_file("./logs/match_names_to_gbif_backbone_log.csv")
 
-    gbif_match(conn=connection, config_parser=config, unmatched_only=True)
+    gbif_match(conn=connection, config_parser=config, unmatched_only=False)
