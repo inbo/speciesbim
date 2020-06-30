@@ -100,6 +100,48 @@ def _get_taxon_from_taxonomy_by_gbifId(conn, gbifId):
 #
 #     return taxonomy_dict
 
+def add_taxon_tree(conn, gbif_key):
+    # find and add taxon recursively to taxonomy table
+
+    taxon_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbifId=gbif_key)
+
+    # get info from GBIF Backbone
+    name_usage_info = pygbif.name_usage(key=gbif_key)
+    gbifId = name_usage_info.get('key')
+    assert gbifId == gbif_key, f"Inconsistency in GBIF database. Got {gbif_key} from name_usage({gbifId})."
+    scientificName = name_usage_info.get('scientificName')
+    kingdom = name_usage_info.get('kingdom')
+    gbif_parentKey = name_usage_info.get("parentKey")
+    parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbifId=gbif_parentKey)
+
+    taxon = {
+        'gbifId': gbifId,
+        'scientificName': scientificName,
+        'kingdom': kingdom,
+        'parentId': parent_in_taxonomy.get('id')
+    }
+
+    # taxon not in our taxonomy table
+    if taxon_in_taxonomy.get('gbifId') is None:
+        # taxon has no parent in GBIF Backbone
+        if gbif_parentKey is None:
+            _insert_new_entry_taxonomy(conn, taxon=taxon)
+            return taxon
+        # taxon has parent in GBIF Backbone
+        else:
+            parent = add_taxon_tree(conn, gbif_key=gbif_parentKey)
+            # get the updated parentId
+            parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbifId=gbif_parentKey)
+            taxon['parentId'] = parent_in_taxonomy.get('id')
+            _insert_new_entry_taxonomy(conn, taxon=taxon)
+    else:
+        # parent in GBIF Backbone not in taxonomy
+        if taxon.get('parentId') is None and gbif_parentKey is not None:
+            add_taxon_tree(conn, gbif_key=gbif_parentKey)
+        # get the updated parentId
+        parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbifId=gbif_parentKey)
+        taxon['parentId'] = parent_in_taxonomy.get('id')
+        _update_taxonomy_if_needed(conn, taxon_in_taxonomy=taxon_in_taxonomy, taxon=taxon)
 
 def gbif_match(conn, config_parser, unmatched_only=True):
     # get data from the scientificname table
@@ -137,9 +179,8 @@ def gbif_match(conn, config_parser, unmatched_only=True):
         if row['authorship'] is not None:
             name += " " + row['authorship']
         print(f'Try matching {name}.')
-        # match name
-        gbif_taxon_info = pygbif.name_backbone(name=name, strict=True)
 
+        #initialize match information
         match_info = {
             'taxonomyId': None,
             'lastMatched': last_matched,
@@ -147,24 +188,19 @@ def gbif_match(conn, config_parser, unmatched_only=True):
             'matchConfidence': None
         }
 
+        # match name
+        gbif_taxon_info = pygbif.name_backbone(name=name, strict=True)
+
+        match_info['matchType'] = gbif_taxon_info.get('matchType')
+        match_info['matchConfidence'] = gbif_taxon_info.get('confidence')
+
         if gbif_taxon_info['matchType'] != 'NONE':
             match_count += 1
 
             gbifId = gbif_taxon_info.get('usageKey')
-            scientificName = gbif_taxon_info.get('scientificName')
-            kingdom = gbif_taxon_info.get('kingdom')
-
-            match_info['matchType'] = gbif_taxon_info.get('matchType')
-            match_info['matchConfidence'] = gbif_taxon_info.get('confidence')
-
-            taxon = {'gbifId': gbifId, 'scientificName': scientificName, 'kingdom': kingdom}
-
-            if gbifId not in taxonomy_dict:
-                # GBIF knows about this taxon, and we don't
-                match_info['taxonomyId'] = _insert_new_entry_taxonomy(conn, taxon)
-            else:
-                # We already know about it, something to update
-                match_info['taxonomyId'] = _update_taxonomy_if_needed(conn, taxonomy_dict, taxon)
+            add_taxon_tree(conn, gbifId)
+            taxon = _get_taxon_from_taxonomy_by_gbifId(conn, gbifId=gbifId)
+            match_info['taxonomyId'] = taxon['id']
 
         else:
             log = f"No match found for {name} (id: {row_id})."
