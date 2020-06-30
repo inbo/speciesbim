@@ -4,7 +4,7 @@ CREATE TABLE taxonomy (
     "gbifId" integer NOT NULL, -- ID at GBIF
     "scientificName" character varying(255), -- as returned by GBIF
     "kingdom" character varying(50),
-    "parentId" integer REFERENCES id  -- internal (to the DB) pointer
+    "parentId" integer REFERENCES taxonomy(id)  -- internal (to the DB) pointer
 );
 
 CREATE TYPE gbifmatchtype AS ENUM ('EXACT', 'FUZZY', 'HIGHERRANK', 'NONE');
