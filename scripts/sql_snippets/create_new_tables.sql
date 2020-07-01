@@ -20,3 +20,10 @@ CREATE TABLE scientificname (
     "matchConfidence" smallint,
     "matchType" gbifmatchtype
 );
+
+CREATE TABLE vernacularname (
+    "id" serial PRIMARY KEY,
+    "taxonomyId" integer REFERENCES taxonomy(id) NOT NULL, -- Can be null if no match
+    "language" character varying(255) NOT NULL, -- Follows ISO 639-1 norm
+    "name" character varying(255)
+)
