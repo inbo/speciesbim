@@ -100,7 +100,7 @@ def _get_taxon_from_taxonomy_by_gbifId(conn, gbifId):
 #
 #     return taxonomy_dict
 
-def add_taxon_tree(conn, gbif_key):
+def _add_taxon_tree(conn, gbif_key):
     # find and add taxon recursively to taxonomy table
 
     taxon_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbifId=gbif_key)
@@ -129,7 +129,7 @@ def add_taxon_tree(conn, gbif_key):
             return taxon
         # taxon has parent in GBIF Backbone
         else:
-            parent = add_taxon_tree(conn, gbif_key=gbif_parentKey)
+            parent = _add_taxon_tree(conn, gbif_key=gbif_parentKey)
             # get the updated parentId
             parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbifId=gbif_parentKey)
             taxon['parentId'] = parent_in_taxonomy.get('id')
@@ -137,7 +137,7 @@ def add_taxon_tree(conn, gbif_key):
     else:
         # parent in GBIF Backbone not in taxonomy
         if taxon.get('parentId') is None and gbif_parentKey is not None:
-            add_taxon_tree(conn, gbif_key=gbif_parentKey)
+            _add_taxon_tree(conn, gbif_key=gbif_parentKey)
         # get the updated parentId
         parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbifId=gbif_parentKey)
         taxon['parentId'] = parent_in_taxonomy.get('id')
@@ -198,7 +198,7 @@ def gbif_match(conn, config_parser, unmatched_only=True):
             match_count += 1
 
             gbifId = gbif_taxon_info.get('usageKey')
-            add_taxon_tree(conn, gbifId)
+            _add_taxon_tree(conn, gbifId)
             taxon = _get_taxon_from_taxonomy_by_gbifId(conn, gbifId=gbifId)
             match_info['taxonomyId'] = taxon['id']
 
