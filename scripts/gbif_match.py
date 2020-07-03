@@ -49,10 +49,7 @@ def _update_taxonomy_if_needed(conn, taxon_in_taxonomy, taxon):
 def _insert_new_entry_taxonomy(conn, taxon):
     gbifId = taxon['gbifId']
 
-    print(f"Taxon {taxon['scientificName']} currently not present in the taxonomy table.")
     # insert taxon in taxonomy table
-
-    # insert taxon in taxonomy
     execute_sql_from_jinja_string(
         conn,
         """INSERT INTO taxonomy ({{ col_names | surround_by_quote | join(', ') | sqlsafe }}) VALUES {{ values | inclause }}""",
@@ -68,7 +65,6 @@ def _insert_new_entry_taxonomy(conn, taxon):
     assert len(taxonomyId) <= 1, \
         f"Too many taxa returned for gbifId = {gbifId}. Duplicates in taxonomy table."
     taxonomyId = taxonomyId[0][0]
-    print(f"Taxon {taxon['scientificName']} inserted in taxonomy (id = {taxonomyId}).")
     return taxonomyId
 
 
@@ -89,9 +85,12 @@ def _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id):
     return taxon
 
 
-def _add_taxon_tree(conn, gbif_key):
-    # find and add taxon recursively to taxonomy table
-    taxon_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_key)
+def _print_indent(msg, depth=0, indent=4):
+    print("{}{}".format(" " * (indent * depth), msg))
+
+
+def _add_taxon_tree(conn, gbif_key, depth=0):
+    # Params: depth is the recursion level (used for log indentation)
 
     # get info from GBIF Backbone
     name_usage_info = pygbif.name_usage(key=gbif_key)
@@ -102,25 +101,34 @@ def _add_taxon_tree(conn, gbif_key):
     gbif_parentKey = name_usage_info.get("parentKey")
     parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
 
+    _print_indent(f"Recursively adding the taxon with GBIF key {gbif_key} ({scientificName}) to the taxonomy table", depth=depth)
+
     taxon = {
         'gbifId': gbifId,
         'scientificName': scientificName,
         'kingdom': kingdom,
         'parentId': parent_in_taxonomy.get('id')
     }
+    # find and add taxon recursively to taxonomy table
+    taxon_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_key)
 
     if taxon_in_taxonomy.get('gbifId') is None:  # Taxon is not yet in our taxonomy table
-        if gbif_parentKey is None:  # According to GBIF, this is a root taxon (no parents)
-            _insert_new_entry_taxonomy(conn, taxon=taxon)
-        else:  # taxon is *NOT* a root
-            _add_taxon_tree(conn, gbif_key=gbif_parentKey)
+        if gbif_parentKey is None:
+            _print_indent("According to GBIF, this is a root taxon (no more parents to insert)", depth=depth)
+        else:
+            _print_indent("According to GBIF, this is a *not* a root taxon, we'll insert parents first", depth=depth)
+            _add_taxon_tree(conn, gbif_key=gbif_parentKey, depth=depth+1)
             # get the updated parentId
             parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
             taxon['parentId'] = parent_in_taxonomy.get('id')
-            _insert_new_entry_taxonomy(conn, taxon=taxon)
+        newly_inserted_id = _insert_new_entry_taxonomy(conn, taxon=taxon)
+        _print_indent(f"Taxon {taxon['scientificName']} inserted in taxonomy (id = {newly_inserted_id}, parentId = {taxon['parentId']}).", depth=depth)
     else:  # The taxon already appears in the taxonomy table
+        _print_indent("This taxon already appears in the taxonomy table", depth=depth)
         if taxon.get('parentId') is None and gbif_parentKey is not None:  # it has no parent in taxonomy table, but GBIF has parent
-            _add_taxon_tree(conn, gbif_key=gbif_parentKey)
+            # TODO: check: is this whole case and code block necessary? (doesn't appear to be called with the test data)
+            _print_indent("But parents aren't there yet, inserting...", depth=depth)
+            _add_taxon_tree(conn, gbif_key=gbif_parentKey, depth=depth+1)
         # get the updated parentId
         parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
         taxon['parentId'] = parent_in_taxonomy.get('id')
@@ -150,7 +158,7 @@ def gbif_match(conn, config_parser, unmatched_only=True):
     match_count = 0
 
     last_matched = datetime.datetime.now()
-    print(last_matched)
+    print(f"Timestamp used for this (whole) match process: {last_matched}")
 
     # match names to GBIF Backbone
     for row in scientificname_cur:
@@ -159,7 +167,7 @@ def gbif_match(conn, config_parser, unmatched_only=True):
         name = row['scientificName']
         if row['authorship'] is not None:
             name += " " + row['authorship']
-        print(f'Try matching {name}.')
+        print(f'Try matching the "{name}" name...')
 
         # initialize match information
         match_info = {
@@ -188,7 +196,7 @@ def gbif_match(conn, config_parser, unmatched_only=True):
             print(log)
             logging.warning(log)
 
-        print(f"Add match information and taxonomiyId, if present, to scientificname for {name} (id: {row_id}).")
+        print(f"Add match information (and taxonomiyId, if a match was found) to scientificname for {name} (id: {row_id}).")
         _update_match_info(conn, match_info, row_id)
 
     # Logging and statistics
