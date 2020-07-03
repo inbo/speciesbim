@@ -71,38 +71,26 @@ def _insert_new_entry_taxonomy(conn, taxon):
     print(f"Taxon {taxon['scientificName']} inserted in taxonomy (id = {taxonomyId}).")
     return taxonomyId
 
-def _get_taxon_from_taxonomy_by_gbifId(conn, gbifId):
 
-    # get taxon information from taxonomy by searching on gbifId
-    gbifId_to_search = {'gbifId': gbifId}
+def _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id):
+    # Search the taxonomy table by gbif_id
+    # Returns a dict such as: {'id': 1, 'gbifId': 5, 'scientificName': 'Fungi', 'kingdom': 'Fungi', 'parentId': None}
+    # If nothing is found, returns {'id': None, 'gbifId': None, 'scientificName': None, 'kingdom': None, 'parentId': None}
     template = """SELECT * FROM taxonomy WHERE "gbifId" = {{ gbifId }} """
-    taxon_cur = execute_sql_from_jinja_string(conn, sql_string=template, context=gbifId_to_search)
+    taxon_cur = execute_sql_from_jinja_string(conn, sql_string=template, context={'gbifId': gbif_id})
     taxon_values = taxon_cur.fetchall()
     cols_taxonomy = list(map(lambda x: x[0], taxon_cur.description))
 
-    assert len(taxon_values) <= 1, f"Multiple taxa with gbifId = {gbifId} in taxonomy."
+    assert len(taxon_values) <= 1, f"Multiple taxa with gbifId = {gbif_id} in taxonomy."
     if len(taxon_values) == 1:
         taxon = dict(zip(cols_taxonomy, taxon_values[0]))
     else:
         taxon = dict.fromkeys(cols_taxonomy)
     return taxon
 
-# To remove (or at least improve with dict_cursor) later during refactoring
-# def _get_taxonomy_as_dict(conn):
-#     taxonomy_cur = execute_sql_from_file(conn, 'get_taxa_taxonomy.sql')
-#     taxonomy = taxonomy_cur.fetchall()
-#     cols_taxonomy = list(map(lambda x: x[0], taxonomy_cur.description))
-#     taxonomy_dict = dict()
-#     if taxonomy is not None:
-#         for row in taxonomy:
-#             # use gbifID as key of taxonomy_dict
-#             taxonomy_dict[row[1]] = dict(zip(cols_taxonomy, row))
-#
-#     return taxonomy_dict
 
 def _add_taxon_tree(conn, gbif_key):
     # find and add taxon recursively to taxonomy table
-
     taxon_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbifId=gbif_key)
 
     # get info from GBIF Backbone
@@ -143,6 +131,7 @@ def _add_taxon_tree(conn, gbif_key):
         taxon['parentId'] = parent_in_taxonomy.get('id')
         _update_taxonomy_if_needed(conn, taxon_in_taxonomy=taxon_in_taxonomy, taxon=taxon)
 
+
 def gbif_match(conn, config_parser, unmatched_only=True):
     # get data from the scientificname table
     if not unmatched_only:
@@ -155,9 +144,6 @@ def gbif_match(conn, config_parser, unmatched_only=True):
         scientificname_cur = execute_sql_from_file(conn, 'get_names_scientificname_unmatched_only.sql',
                                     {'limit': config_parser.get('gbif_match', 'scientificnames-limit')},
                                     dict_cursor=True)
-
-    # get taxonomy table and store it as a dictionary
-    # taxonomy_dict = _get_taxonomy_as_dict(conn)
 
     total_sn_count = scientificname_cur.rowcount
     print(f"Number of taxa in scientificname table: {total_sn_count}.")
@@ -180,7 +166,7 @@ def gbif_match(conn, config_parser, unmatched_only=True):
             name += " " + row['authorship']
         print(f'Try matching {name}.')
 
-        #initialize match information
+        # initialize match information
         match_info = {
             'taxonomyId': None,
             'lastMatched': last_matched,
