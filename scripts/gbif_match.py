@@ -91,7 +91,7 @@ def _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id):
 
 def _add_taxon_tree(conn, gbif_key):
     # find and add taxon recursively to taxonomy table
-    taxon_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbifId=gbif_key)
+    taxon_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_key)
 
     # get info from GBIF Backbone
     name_usage_info = pygbif.name_usage(key=gbif_key)
@@ -100,7 +100,7 @@ def _add_taxon_tree(conn, gbif_key):
     scientificName = name_usage_info.get('scientificName')
     kingdom = name_usage_info.get('kingdom')
     gbif_parentKey = name_usage_info.get("parentKey")
-    parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbifId=gbif_parentKey)
+    parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
 
     taxon = {
         'gbifId': gbifId,
@@ -109,25 +109,20 @@ def _add_taxon_tree(conn, gbif_key):
         'parentId': parent_in_taxonomy.get('id')
     }
 
-    # taxon not in our taxonomy table
-    if taxon_in_taxonomy.get('gbifId') is None:
-        # taxon has no parent in GBIF Backbone
-        if gbif_parentKey is None:
+    if taxon_in_taxonomy.get('gbifId') is None:  # Taxon is not yet in our taxonomy table
+        if gbif_parentKey is None:  # According to GBIF, this is a root taxon (no parents)
             _insert_new_entry_taxonomy(conn, taxon=taxon)
-            return taxon
-        # taxon has parent in GBIF Backbone
-        else:
-            parent = _add_taxon_tree(conn, gbif_key=gbif_parentKey)
+        else:  # taxon is *NOT* a root
+            _add_taxon_tree(conn, gbif_key=gbif_parentKey)
             # get the updated parentId
-            parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbifId=gbif_parentKey)
+            parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
             taxon['parentId'] = parent_in_taxonomy.get('id')
             _insert_new_entry_taxonomy(conn, taxon=taxon)
-    else:
-        # parent in GBIF Backbone not in taxonomy
-        if taxon.get('parentId') is None and gbif_parentKey is not None:
+    else:  # The taxon already appears in the taxonomy table
+        if taxon.get('parentId') is None and gbif_parentKey is not None:  # it has no parent in taxonomy table, but GBIF has parent
             _add_taxon_tree(conn, gbif_key=gbif_parentKey)
         # get the updated parentId
-        parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbifId=gbif_parentKey)
+        parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
         taxon['parentId'] = parent_in_taxonomy.get('id')
         _update_taxonomy_if_needed(conn, taxon_in_taxonomy=taxon_in_taxonomy, taxon=taxon)
 
@@ -185,7 +180,7 @@ def gbif_match(conn, config_parser, unmatched_only=True):
 
             gbifId = gbif_taxon_info.get('usageKey')
             _add_taxon_tree(conn, gbifId)
-            taxon = _get_taxon_from_taxonomy_by_gbifId(conn, gbifId=gbifId)
+            taxon = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbifId)
             match_info['taxonomyId'] = taxon['id']
 
         else:
