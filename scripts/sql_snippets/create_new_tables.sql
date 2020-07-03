@@ -1,7 +1,8 @@
--- That table contains taxonomic data from GBIF (obtained after matches on the content of scientificname table
+-- That table contains taxonomic data from GBIF (obtained after matches on the content of scientificname table)
+-- ! Content of this table should stay totally GBIF-populated (so it can be dropped and recreated at any time by running the scripts again)
 CREATE TABLE taxonomy (
     "id" serial PRIMARY KEY,  -- internal (to the DB) ID
-    "gbifId" integer NOT NULL, -- ID at GBIF
+    "gbifId" integer NOT NULL UNIQUE, -- ID at GBIF
     "scientificName" character varying(255), -- as returned by GBIF
     "kingdom" character varying(50),
     "parentId" integer REFERENCES taxonomy(id)  -- internal (to the DB) pointer
