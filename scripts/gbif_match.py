@@ -88,8 +88,11 @@ def _insert_new_entry_taxonomy(conn, taxon):
     assert taxonomyId is not None, f"Taxon with gbifId {gbifId} not inserted into the taxonomy table."
     assert len(taxonomyId) <= 1, \
         f"Too many taxa returned for gbifId = {gbifId}. Duplicates in taxonomy table."
-    taxonomyId = taxonomyId[0][0]
-    return taxonomyId
+
+    _insert_new_entry_taxonomy.counter += 1
+    return taxonomyId[0][0]
+
+_insert_new_entry_taxonomy.counter = 0
 
 
 def _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id):
@@ -229,6 +232,7 @@ def gbif_match(conn, config_parser, unmatched_only=True):
     n_matched_taxa = f"Number of matched names: {match_count}/{total_sn_count} ({n_matched_taxa_perc:.2f}%)."
     print(n_matched_taxa)
     logging.info(n_matched_taxa)
+    print(f"Total number of insertions in the taxonomy table: {_insert_new_entry_taxonomy.counter}")
     elapsed_time = f"Match to GBIF Backbone performed in {round(end - start)}s."
     print(elapsed_time)
     logging.info(elapsed_time)
