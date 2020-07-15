@@ -7,6 +7,30 @@ from helpers import execute_sql_from_file, get_database_connection, get_config, 
 from helpers import execute_sql_from_jinja_string
 
 
+def _insert_or_get_rank(conn, rank_name):
+    """ Insert or select a rank
+
+    If rank_name already exists in the rank table, select it.
+    Otherwise, insert it in a new row.
+
+    In both cases, returns the row id """
+
+    template = """WITH ins AS (
+        INSERT INTO rank(name)
+        VALUES ({{ rank_name }})         -- input value
+        ON CONFLICT(name) DO NOTHING
+        RETURNING rank.id
+        )
+    SELECT id FROM ins
+    UNION  ALL
+    SELECT id FROM rank          -- 2nd SELECT never executed if INSERT successful
+    WHERE name = {{ rank_name }}  -- input value a 2nd time
+    LIMIT  1;"""
+
+    cur = execute_sql_from_jinja_string(conn, sql_string=template, context={'rank_name': rank_name}, dict_cursor=True)
+    return cur.fetchone()['id']
+
+
 def _update_match_info(conn, match_info, scientificname_row_id):
     # update scientificname with info about match and taxonomyId
     match_info = {k: v for k, v in match_info.items() if v is not None}
@@ -97,7 +121,7 @@ def _add_taxon_tree(conn, gbif_key, depth=0):
     gbifId = name_usage_info.get('key')
     assert gbifId == gbif_key, f"Inconsistency in GBIF database. Got {gbif_key} from name_usage({gbifId})."
     scientificName = name_usage_info.get('scientificName')
-    kingdom = name_usage_info.get('kingdom')
+
     gbif_parentKey = name_usage_info.get("parentKey")
     parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
 
@@ -106,8 +130,8 @@ def _add_taxon_tree(conn, gbif_key, depth=0):
     taxon = {
         'gbifId': gbifId,
         'scientificName': scientificName,
-        'kingdom': kingdom,
-        'parentId': parent_in_taxonomy.get('id')
+        'parentId': parent_in_taxonomy.get('id'),
+        'rankId': _insert_or_get_rank(conn=conn, rank_name=name_usage_info.get('rank'))
     }
     # find and add taxon recursively to taxonomy table
     taxon_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_key)
