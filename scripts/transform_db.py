@@ -6,6 +6,7 @@
 # You can start by copying config.ini.example to config.ini and change its content.
 import os
 import gbif_match
+import vernacular_names
 import logging
 
 from helpers import execute_sql_from_file, get_database_connection, get_config, setup_log_file
@@ -38,3 +39,8 @@ with conn:
     print(message)
     logging.info(message)
     gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)
+
+    message = "Step 5: populate vernacular names from GBIF for each entry in the taxonomy table"
+    print(message)
+    logging.info(message)
+    vernacular_names.populate_vernacular_names(conn, empty_only=False)
