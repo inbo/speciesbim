@@ -79,17 +79,19 @@ def populate_vernacular_names(conn, empty_only):
 
         vns = _get_vernacular_names_gbif(gbif_taxon_id, filter_lang=['fra', 'nld'])
         for vernacular_name in vns:
-            name = vernacular_name['vernacularName']
-            lang_code = _iso639_1_to_2(vernacular_name['language'])
+            name = vernacular_name.get('vernacularName')
+            lang_code = _iso639_1_to_2(vernacular_name.get('language'))
+            source = vernacular_name.get('source')
 
-            msg = f"Now saving '{name}'({lang_code}) for taxon with ID: {taxonomy_id}"
+            msg = f"Now saving '{name}'({lang_code}) for taxon with ID: {taxonomy_id} (source: {source})"
             print(msg)
             logging.info(msg)
 
-            insert_template = """INSERT INTO vernacularname("taxonomyId", "language", "name") VALUES ({{ taxonomy_id}}, {{ lang_code }}, {{ name }})"""
+            insert_template = """INSERT INTO vernacularname("taxonomyId", "language", "name", "source") VALUES ({{ taxonomy_id}}, {{ lang_code }}, {{ name }}, {{ source }})"""
             execute_sql_from_jinja_string(conn, sql_string=insert_template, context={'taxonomy_id': taxonomy_id,
                                                                                      'lang_code': lang_code,
-                                                                                     'name': name})
+                                                                                     'name': name,
+                                                                                     'source': source})
             total_vernacularnames_counter += 1
 
     end_time = time.time()
