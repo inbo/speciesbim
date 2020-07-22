@@ -1,8 +1,9 @@
 # speciesbim
 Development of the postgreSQL species database of Brussels Environment
 
-# Why  CSL log files## Changelog / development journal
+## Changelog / development journal
 
+- Added vernacular names in `vernacularname` with all vernacular names. Adding only a subset of languages is possible
 - Improved the taxonomy table so rank info is also included (in a separate "rank" table)
 - Dropped the kingdom column in `taxonomy`: it's a cleaner design to infer it by browsing the tree (see below)
 
