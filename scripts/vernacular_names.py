@@ -106,3 +106,4 @@ if __name__ == "__main__":
     setup_log_file("./logs/vernacular_names.csv")
 
     populate_vernacular_names(connection, empty_only=False)
+    
