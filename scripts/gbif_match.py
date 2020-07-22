@@ -143,7 +143,7 @@ def _add_taxon_tree(conn, gbif_key, depth=0):
         if gbif_parentKey is None:
             _print_indent("According to GBIF, this is a root taxon (no more parents to insert)", depth=depth)
         else:
-            _print_indent("According to GBIF, this is a *not* a root taxon, we'll insert parents first", depth=depth)
+            _print_indent("According to GBIF, this is *not* a root taxon, we'll insert parents first", depth=depth)
             _add_taxon_tree(conn, gbif_key=gbif_parentKey, depth=depth+1)
             # get the updated parentId
             parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
