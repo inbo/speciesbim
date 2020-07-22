@@ -3,7 +3,7 @@ import time
 
 from pygbif import species
 
-from helpers import execute_sql_from_jinja_string
+from helpers import execute_sql_from_jinja_string, get_database_connection, setup_log_file
 
 
 def _paginated_name_usage(*args, **kwargs):
@@ -99,3 +99,10 @@ def populate_vernacular_names(conn, empty_only):
     msg = f"Done loading {total_vernacularnames_counter} vernacular names in {round(end_time - start_time)}s."
     print(msg)
     logging.info(msg)
+
+
+if __name__ == "__main__":
+    connection = get_database_connection()
+    setup_log_file("./logs/vernacular_names.csv")
+
+    populate_vernacular_names(connection, empty_only=False)
