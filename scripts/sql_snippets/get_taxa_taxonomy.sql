@@ -1,3 +1,4 @@
 SELECT * FROM taxonomy
-
--- TODO: replace this file by a string?
+{% if limit %}
+LIMIT {{ limit }}
+{% endif %};
