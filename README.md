@@ -3,8 +3,9 @@ Development of the postgreSQL species database of Brussels Environment
 
 ## Changelog / development journal
 
-- I improved the taxonomy table so rank info is also included (in a separate "rank" table)
-- I dropped the kingdom column in taxonomy: it's a cleaner design to infer it by browsing the tree (see below)
+- Added vernacular names in `vernacularname` with all vernacular names. Adding only a subset of languages is possible
+- Improved the taxonomy table so rank info is also included (in a separate "rank" table)
+- Dropped the kingdom column in `taxonomy`: it's a cleaner design to infer it by browsing the tree (see below)
 
 The following examples use a recursive CTE to get parents information for a given taxon:
 
@@ -101,4 +102,3 @@ Truncated result:
 | id | gbifId | scientificName | rankId | parentId | rank | kingdom |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 32 | 216 | Insecta | 5 | 31 | CLASS | Animalia |
-
