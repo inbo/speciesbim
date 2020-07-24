@@ -6,6 +6,7 @@ import psycopg2
 import psycopg2.extras
 from jinja2 import Environment
 from jinjasql import JinjaSql
+from pygbif import species
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
@@ -93,3 +94,23 @@ def execute_sql_from_file(conn, filename, context=None, dict_cursor=False):
                                          sql_string=open(os.path.join(dirname, 'sql_snippets', filename), 'r').read(),
                                          context=context,
                                          dict_cursor=dict_cursor)
+
+def paginated_name_usage(*args, **kwargs):
+    """Small helper to handle the pagination in pygbif and make sure we get all results in one shot"""
+    PER_PAGE = 100
+
+    results = []
+    offset = 0
+
+    while True:
+        resp = species.name_usage(*args, **kwargs, limit=PER_PAGE, offset=offset)
+        results = results + resp['results']
+        if resp['endOfRecords']:
+            break
+        else:
+            offset = offset + PER_PAGE
+
+    return results
+
+def print_indent(msg, depth=0, indent=4):
+    print("{}{}".format(" " * (indent * depth), msg))
