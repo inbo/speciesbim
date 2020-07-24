@@ -43,4 +43,4 @@ with conn:
     message = "Step 5: populate vernacular names from GBIF for each entry in the taxonomy table"
     print(message)
     logging.info(message)
-    vernacular_names.populate_vernacular_names(conn, empty_only=False)
+    vernacular_names.populate_vernacular_names(conn, config_parser=config, empty_only=False)

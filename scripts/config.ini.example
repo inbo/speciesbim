@@ -15,3 +15,8 @@ scientificnames-limit = 200
 # scientificnames-limit: number | empty for all
 # scientificnames-limit =
 scientificnames-limit = 100
+
+[vernacular_names]
+# taxa-limit: number | empty for all
+# taxa-limit =
+taxa-limit = 100
