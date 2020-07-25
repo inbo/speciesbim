@@ -49,7 +49,7 @@ def populate_is_exotic_be_field(conn, config_parser, exotic_status_source):
     alien_taxa = _get_alien_taxa(datasetKey=exotic_status_source)
     end_time = time.time()
 
-    msg = f"Retrieved {len(alien_taxa)} exotic taxa in {end_time-start_time}s."
+    msg = f"Retrieved {len(alien_taxa)} exotic taxa in {round(end_time-start_time)}s."
     print(msg)
     logging.info(msg)
 
