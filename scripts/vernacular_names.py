@@ -28,7 +28,7 @@ def _get_vernacular_names_gbif(gbif_taxon_id, filter_lang=None):
     #  {'taxonKey': 5, 'vernacularName': 'schimmels', 'language': 'nld', 'country': 'BE',
     #   'source': 'Belgian Species List', 'sourceTaxonKey': 100489794}]
 
-    names_data = _paginated_name_usage(key=gbif_taxon_id, data="vernacularNames")
+    names_data = paginated_name_usage(key=gbif_taxon_id, data="vernacularNames")
 
     if filter_lang is not None:
         names_data = [nd for nd in names_data if nd['language'] in filter_lang]
