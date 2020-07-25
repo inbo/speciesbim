@@ -1,6 +1,6 @@
 import logging
 import time
-from helpers import execute_sql_from_file, execute_sql_from_jinja_string, get_database_connection, get_config, \
+from helpers import execute_sql_from_jinja_string, get_database_connection, get_config, \
     setup_log_file, paginated_name_usage, print_indent
 
 def _get_alien_taxa(datasetKey):
