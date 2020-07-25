@@ -7,6 +7,7 @@
 import os
 import gbif_match
 import vernacular_names
+import exotic_status
 import logging
 
 from helpers import execute_sql_from_file, get_database_connection, get_config, setup_log_file
@@ -44,3 +45,10 @@ with conn:
     print(message)
     logging.info(message)
     vernacular_names.populate_vernacular_names(conn, config_parser=config, empty_only=False)
+
+    message = "Step 6: populate field exotic_be (values: True of False) from GRIIS checklist for each entry in taxonomy table."
+    print(message)
+    logging.info(message)
+    # GBIF datasetKey of checklist: Global Register of Introduced and Invasive Species - Belgium
+    griis_be = "6d9e952f-948c-4483-9807-575348147c7e"
+    exotic_status.populate_is_exotic_be_field(conn, config_parser=config, exotic_status_source = griis_be)

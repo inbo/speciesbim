@@ -3,8 +3,8 @@ import logging
 import pygbif
 import time
 import datetime
-from helpers import execute_sql_from_file, get_database_connection, get_config, setup_log_file
-from helpers import execute_sql_from_jinja_string
+from helpers import execute_sql_from_file, get_database_connection, get_config, setup_log_file, \
+    execute_sql_from_jinja_string, print_indent
 
 
 def _insert_or_get_rank(conn, rank_name):
@@ -112,10 +112,6 @@ def _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id):
     return taxon
 
 
-def _print_indent(msg, depth=0, indent=4):
-    print("{}{}".format(" " * (indent * depth), msg))
-
-
 def _add_taxon_tree(conn, gbif_key, depth=0):
     # Params: depth is the recursion level (used for log indentation)
 
@@ -128,7 +124,7 @@ def _add_taxon_tree(conn, gbif_key, depth=0):
     gbif_parentKey = name_usage_info.get("parentKey")
     parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
 
-    _print_indent(f"Recursively adding the taxon with GBIF key {gbif_key} ({scientificName}) to the taxonomy table", depth=depth)
+    print_indent(f"Recursively adding the taxon with GBIF key {gbif_key} ({scientificName}) to the taxonomy table", depth=depth)
 
     taxon = {
         'gbifId': gbifId,
@@ -141,20 +137,20 @@ def _add_taxon_tree(conn, gbif_key, depth=0):
 
     if taxon_in_taxonomy.get('gbifId') is None:  # Taxon is not yet in our taxonomy table
         if gbif_parentKey is None:
-            _print_indent("According to GBIF, this is a root taxon (no more parents to insert)", depth=depth)
+            print_indent("According to GBIF, this is a root taxon (no more parents to insert)", depth=depth)
         else:
-            _print_indent("According to GBIF, this is *not* a root taxon, we'll insert parents first", depth=depth)
+            print_indent("According to GBIF, this is *not* a root taxon, we'll insert parents first", depth=depth)
             _add_taxon_tree(conn, gbif_key=gbif_parentKey, depth=depth+1)
             # get the updated parentId
             parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
             taxon['parentId'] = parent_in_taxonomy.get('id')
         newly_inserted_id = _insert_new_entry_taxonomy(conn, taxon=taxon)
-        _print_indent(f"Taxon {taxon['scientificName']} inserted in taxonomy (id = {newly_inserted_id}, parentId = {taxon['parentId']}).", depth=depth)
+        print_indent(f"Taxon {taxon['scientificName']} inserted in taxonomy (id = {newly_inserted_id}, parentId = {taxon['parentId']}).", depth=depth)
     else:  # The taxon already appears in the taxonomy table
-        _print_indent("This taxon already appears in the taxonomy table", depth=depth)
+        print_indent("This taxon already appears in the taxonomy table", depth=depth)
         if taxon.get('parentId') is None and gbif_parentKey is not None:  # it has no parent in taxonomy table, but GBIF has parent
             # TODO: check: is this whole case and code block necessary? (doesn't appear to be called with the test data)
-            _print_indent("But parents aren't there yet, inserting...", depth=depth)
+            print_indent("But parents aren't there yet, inserting...", depth=depth)
             _add_taxon_tree(conn, gbif_key=gbif_parentKey, depth=depth+1)
         # get the updated parentId
         parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)

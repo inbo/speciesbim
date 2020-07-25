@@ -3,6 +3,9 @@ Development of the postgreSQL species database of Brussels Environment
 
 ## Changelog / development journal
 
+- Added exotic status to `taxonomy` table (field `exotic_be`) describing whether a species is exotic in Belgium.
+    Information is inferred from the GBIF checklist [Global Register of Introduced and Invasive Species - Belgium](https://www.gbif.org/dataset/6d9e952f-948c-4483-9807-575348147c7e).
+    The exotic status is propagatd to all children of a taxon, if present.  
 - Added vernacular names in `vernacularname` with all vernacular names. Adding only a subset of languages is possible
 - Improved the taxonomy table so rank info is also included (in a separate "rank" table)
 - Dropped the kingdom column in `taxonomy`: it's a cleaner design to infer it by browsing the tree (see below)
