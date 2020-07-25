@@ -99,6 +99,5 @@ if __name__ == "__main__":
     setup_log_file("./logs/populate_exotic_status_field.csv")
     # datasetKey of Global Register of Introduced and Invasive Species - Belgium
     griis_be = "6d9e952f-948c-4483-9807-575348147c7e"
-    populate_is_exotic_be_field(conn=connection,
-                                config_parser=config,
-                                exotic_status_source = griis_be)
+
+    populate_is_exotic_be_field(conn=connection, config_parser=config, exotic_status_source = griis_be)
