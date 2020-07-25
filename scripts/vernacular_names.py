@@ -3,26 +3,8 @@ import time
 
 from pygbif import species
 
-from helpers import execute_sql_from_jinja_string, get_database_connection, setup_log_file, get_config
-
-
-def _paginated_name_usage(*args, **kwargs):
-    """Small helper to handle the pagination in pygbif and make sure we get all results in one shot"""
-    PER_PAGE = 100
-
-    results = []
-    offset = 0
-
-    while True:
-        resp = species.name_usage(*args, **kwargs, limit=PER_PAGE, offset=offset)
-        results = results + resp['results']
-        if resp['endOfRecords']:
-            break
-        else:
-            offset = offset + PER_PAGE
-
-    return results
-
+from helpers import execute_sql_from_jinja_string, get_database_connection, setup_log_file, get_config, \
+    paginated_name_usage
 
 def _iso639_1_to_2(code):
     """Takes a 3 letter-code (fra) and returns the corresponding 2-letter code"""
