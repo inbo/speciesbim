@@ -78,7 +78,7 @@ def populate_is_exotic_be_field(conn, config_parser, exotic_status_source):
                                                  exotic_taxa_list= exotic_taxa_ids,
                                                  depth=0)
 
-    msg(f"{len(exotic_taxa_ids)} exotic taxa found in taxonomy.")
+    msg = f"{len(exotic_taxa_ids)} exotic taxa found in taxonomy."
     print(msg)
     logging.info(msg)
 
