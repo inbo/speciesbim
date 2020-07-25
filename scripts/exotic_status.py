@@ -90,7 +90,7 @@ def populate_is_exotic_be_field(conn, config_parser, exotic_status_source):
 
     end_time = time.time()
 
-    msg = f"Field exotic_be updated for {update_exotic_be_cur.rowcount} taxa in taxonomy in {round(end_time - start_time)}s."
+    msg = f"Field exotic_be updated for {update_exotic_be_cur.rowcount} taxa in taxonomy in {round(end_time - start_time, 2)}s."
     print(msg)
     logging.info(msg)
 
