@@ -3,8 +3,8 @@ import logging
 import pygbif
 import time
 import datetime
-from helpers import execute_sql_from_file, get_database_connection, get_config, setup_log_file
-from helpers import execute_sql_from_jinja_string
+from helpers import execute_sql_from_file, get_database_connection, get_config, setup_log_file, \
+    execute_sql_from_jinja_string, print_indent
 
 
 def _insert_or_get_rank(conn, rank_name):
