@@ -223,6 +223,13 @@ def gbif_match(conn, config_parser, unmatched_only=True):
 
         print(f"Add match information (and taxonomiyId, if a match was found) to scientificname for {name} (id: {row_id}).")
         _update_match_info(conn, match_info, row_id)
+        if (row_id % 10 == 9) and (row_id < total_sn_count - 1): # Get time info after multiple of 10 taxa
+            elapsed_time = time.time() - start
+            # notice expected time as calculated below is highly overestimated at the beginning as all trees up to
+            # kingdoms have to be built at the beginning
+            expected_time = elapsed_time / (row_id + 1) * (total_sn_count - row_id - 1)
+            print(f"{row_id + 1}/{total_sn_count} taxa handled in {round(elapsed_time, 2)}s. Expected time to go: {expected_time}s.")
+
 
     # Logging and statistics
     end = time.time()
