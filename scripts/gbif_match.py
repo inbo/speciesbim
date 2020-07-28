@@ -150,10 +150,6 @@ def _add_taxon_tree(conn, gbif_key, depth=0):
         print_indent(f"Taxon {taxon['scientificName']} inserted in taxonomy (id = {newly_inserted_id}, parentId = {taxon['parentId']}).", depth=depth)
     else:  # The taxon already appears in the taxonomy table
         print_indent("This taxon already appears in the taxonomy table", depth=depth)
-        if taxon.get('parentId') is None and gbif_parentKey is not None:  # it has no parent in taxonomy table, but GBIF has parent
-            # TODO: check: is this whole case and code block necessary? (doesn't appear to be called with the test data)
-            print_indent("But parents aren't there yet, inserting...", depth=depth)
-            _add_taxon_tree(conn, gbif_key=gbif_parentKey, depth=depth+1)
         # get the updated parentId
         parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
         taxon['parentId'] = parent_in_taxonomy.get('id')
