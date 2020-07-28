@@ -82,10 +82,13 @@ def populate_is_exotic_be_field(conn, config_parser, exotic_status_source):
     print(msg)
     logging.info(msg)
 
-    # set exotic_be = True for exotic taxa and False for the others
-    template = """ UPDATE taxonomy SET "exotic_be" = """ \
-               + """ CASE WHEN "id" IN {{ ids | inclause }} THEN true""" \
-               + """ ELSE false END"""
+    if (len(exotic_taxa_ids) > 0):
+        # set exotic_be = True for exotic taxa and False for the others
+        template = """ UPDATE taxonomy SET "exotic_be" = """ \
+                   + """ CASE WHEN "id" IN {{ ids | inclause }} THEN true""" \
+                   + """ ELSE false END"""
+    else:
+        template = """ UPDATE taxonomy SET "exotic_be" = false"""
     update_exotic_be_cur = execute_sql_from_jinja_string(conn, sql_string=template, context={'ids': exotic_taxa_ids})
 
     end_time = time.time()
