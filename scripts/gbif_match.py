@@ -42,7 +42,9 @@ def _update_match_info(conn, match_info, scientificname_row_id):
     execute_sql_from_jinja_string(conn, sql_string=template, context=data)
 
 
-def _update_taxonomy_if_needed(conn, taxon_in_taxonomy, taxon):
+def _update_taxonomy_if_needed(conn, taxon_in_taxonomy, taxon, depth=0):
+    # Params: depth is the recursion level (used for log indentation)
+
     # GBIF knows about this taxon, and so we are. Do we need to update or do we already have the latest data
     gbifId = taxon['gbifId']
 
@@ -50,7 +52,7 @@ def _update_taxonomy_if_needed(conn, taxon_in_taxonomy, taxon):
     taxonomy_fields_to_compare = {k: taxon_in_taxonomy[k] for k in taxon}
     taxonomy_fields_to_change = taxonomy_fields_to_compare.copy()
     if taxon == taxonomy_fields_to_compare:
-        print(f"Taxon {taxon['scientificName']} already present in taxonomy (id = {taxonomyId}).")
+        print_indent(f"Taxon {taxon['scientificName']} already present in taxonomy (id = {taxonomyId}).", depth)
     else:
         # unchanged fields
         keys_same_values = dict(taxonomy_fields_to_compare.items() & taxon.items()).keys()
