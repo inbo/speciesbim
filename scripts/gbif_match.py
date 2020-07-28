@@ -99,8 +99,8 @@ _insert_new_entry_taxonomy.counter = 0
 
 def _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id):
     # Search the taxonomy table by gbif_id
-    # Returns a dict such as: {'id': 1, 'gbifId': 5, 'scientificName': 'Fungi', 'kingdom': 'Fungi', 'parentId': None}
-    # If nothing is found, returns {'id': None, 'gbifId': None, 'scientificName': None, 'kingdom': None, 'parentId': None}
+    # Returns a dict such as: {'id': 1, 'gbifId': 5, 'scientificName': 'Fungi', 'rankId': 1, 'acceptedId': None, 'parentId': None}
+    # If nothing is found, returns all None: {'id': None, 'gbifId': None, ...}
     template = """SELECT * FROM taxonomy WHERE "gbifId" = {{ gbifId }} """
     taxon_cur = execute_sql_from_jinja_string(conn, sql_string=template, context={'gbifId': gbif_id})
     taxon_values = taxon_cur.fetchall()
@@ -126,13 +126,17 @@ def _add_taxon_tree(conn, gbif_key, depth=0):
     gbif_parentKey = name_usage_info.get("parentKey")
     parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
 
+    # get accepted GBIF Key synonyms are pointing to (None for accepted taxa)
+    gbif_acceptedKey = name_usage_info.get('acceptedKey')
+    accepted_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_acceptedKey)
     print_indent(f"Recursively adding the taxon with GBIF key {gbif_key} ({scientificName}) to the taxonomy table", depth=depth)
 
     taxon = {
         'gbifId': gbifId,
         'scientificName': scientificName,
+        'rankId': _insert_or_get_rank(conn=conn, rank_name=name_usage_info.get('rank')),
         'parentId': parent_in_taxonomy.get('id'),
-        'rankId': _insert_or_get_rank(conn=conn, rank_name=name_usage_info.get('rank'))
+        'acceptedId': accepted_in_taxonomy.get('id')
     }
     # find and add taxon recursively to taxonomy table
     taxon_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_key)
@@ -146,14 +150,29 @@ def _add_taxon_tree(conn, gbif_key, depth=0):
             # get the updated parentId
             parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
             taxon['parentId'] = parent_in_taxonomy.get('id')
+        if gbif_acceptedKey is None:
+            print_indent("According to GBIF, this is *not* a synonym (no accepetd taxon to insert)", depth=depth)
+        else:
+            print_indent("According to GBIF, this is a synonym. We'll insert accepted taxon first", depth=depth)
+            _add_taxon_tree(conn, gbif_key=gbif_acceptedKey, depth=depth + 1)
+            # get the updated acceptedId
+            accepted_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_acceptedKey)
+            taxon['acceptedId'] = accepted_in_taxonomy.get('id')
         newly_inserted_id = _insert_new_entry_taxonomy(conn, taxon=taxon)
-        print_indent(f"Taxon {taxon['scientificName']} inserted in taxonomy (id = {newly_inserted_id}, parentId = {taxon['parentId']}).", depth=depth)
+        if (taxon['acceptedId'] is None):
+            msg = f"Taxon {taxon['scientificName']} inserted in taxonomy (id = {newly_inserted_id}, parentId = {taxon['parentId']})."
+        else:
+            msg = f"Taxon {taxon['scientificName']} inserted in taxonomy (id = {newly_inserted_id}, parentId = {taxon['parentId']}, acceptedId = {taxon['acceptedId']})."
+        print_indent(msg, depth=depth)
     else:  # The taxon already appears in the taxonomy table
         print_indent("This taxon already appears in the taxonomy table", depth=depth)
         # get the updated parentId
         parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
         taxon['parentId'] = parent_in_taxonomy.get('id')
-        _update_taxonomy_if_needed(conn, taxon_in_taxonomy=taxon_in_taxonomy, taxon=taxon)
+        #  get the updated acceptedId
+        accepted_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_acceptedKey)
+        taxon['acceptedId'] = accepted_in_taxonomy.get('id')
+        _update_taxonomy_if_needed(conn, taxon_in_taxonomy=taxon_in_taxonomy, taxon=taxon, depth=depth)
 
 
 def gbif_match(conn, config_parser, unmatched_only=True):

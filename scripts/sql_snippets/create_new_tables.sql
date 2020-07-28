@@ -10,6 +10,7 @@ CREATE TABLE taxonomy (
     "gbifId" integer NOT NULL UNIQUE, -- ID at GBIF
     "scientificName" character varying(255), -- as returned by GBIF
     "rankId" integer references rank(id),
+    "acceptedId" integer REFERENCES taxonomy(id), -- internal (to the DB) pointer
     "parentId" integer REFERENCES taxonomy(id),  -- internal (to the DB) pointer
     "exotic_be" boolean -- as returned by GBIF (info from GRIIS Belgium checklist)
 );
