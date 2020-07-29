@@ -31,11 +31,13 @@ def _find_exotic_taxa(exotic_taxon, taxa, exotic_taxa_list, depth=0):
         id = taxa[exotic_taxon]['id']
         exotic_taxa_list += [id]
         for t in taxa.values():
-            if (t['parentId'] == id):
+            # extend exotic status to all its children
+            if (id in [t['parentId'], t['acceptedId']]):
                 exotic_taxa_list = _find_exotic_taxa(exotic_taxon=t['gbifId'],
                                                      taxa=taxa,
                                                      exotic_taxa_list=exotic_taxa_list,
                                                      depth=depth+1)
+
     return exotic_taxa_list
 
 def populate_is_exotic_be_field(conn, config_parser, exotic_status_source):
@@ -68,8 +70,10 @@ def populate_is_exotic_be_field(conn, config_parser, exotic_status_source):
         parentId = taxon['parentId']
         scientificName = taxon['scientificName']
         gbifId = taxon['gbifId']
-        taxa_to_check[gbifId] = {'id': id, 'gbifId': gbifId, 'scientificName': scientificName, 'parentId': parentId}
+        acceptedId = taxon['acceptedId']
+        taxa_to_check[gbifId] = {'id': id, 'gbifId': gbifId, 'scientificName': scientificName, 'parentId': parentId, 'acceptedId': acceptedId}
 
+    #initialize list with id of exotic taxa in taxonomy
     exotic_taxa_ids= []
 
     for exotic_taxon in alien_taxa:
@@ -82,10 +86,13 @@ def populate_is_exotic_be_field(conn, config_parser, exotic_status_source):
     print(msg)
     logging.info(msg)
 
-    # set exotic_be = True for exotic taxa and False for the others
-    template = """ UPDATE taxonomy SET "exotic_be" = """ \
-               + """ CASE WHEN "id" IN {{ ids | inclause }} THEN true""" \
-               + """ ELSE false END"""
+    if (len(exotic_taxa_ids) > 0):
+        # set exotic_be = True for exotic taxa and False for the others
+        template = """ UPDATE taxonomy SET "exotic_be" = """ \
+                   + """ CASE WHEN "id" IN {{ ids | inclause }} THEN true""" \
+                   + """ ELSE false END"""
+    else:
+        template = """ UPDATE taxonomy SET "exotic_be" = false"""
     update_exotic_be_cur = execute_sql_from_jinja_string(conn, sql_string=template, context={'ids': exotic_taxa_ids})
 
     end_time = time.time()

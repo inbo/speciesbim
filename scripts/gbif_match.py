@@ -42,7 +42,9 @@ def _update_match_info(conn, match_info, scientificname_row_id):
     execute_sql_from_jinja_string(conn, sql_string=template, context=data)
 
 
-def _update_taxonomy_if_needed(conn, taxon_in_taxonomy, taxon):
+def _update_taxonomy_if_needed(conn, taxon_in_taxonomy, taxon, depth=0):
+    # Params: depth is the recursion level (used for log indentation)
+
     # GBIF knows about this taxon, and so we are. Do we need to update or do we already have the latest data
     gbifId = taxon['gbifId']
 
@@ -50,7 +52,7 @@ def _update_taxonomy_if_needed(conn, taxon_in_taxonomy, taxon):
     taxonomy_fields_to_compare = {k: taxon_in_taxonomy[k] for k in taxon}
     taxonomy_fields_to_change = taxonomy_fields_to_compare.copy()
     if taxon == taxonomy_fields_to_compare:
-        print(f"Taxon {taxon['scientificName']} already present in taxonomy (id = {taxonomyId}).")
+        print_indent(f"Taxon {taxon['scientificName']} already present in taxonomy (id = {taxonomyId}).", depth)
     else:
         # unchanged fields
         keys_same_values = dict(taxonomy_fields_to_compare.items() & taxon.items()).keys()
@@ -97,8 +99,8 @@ _insert_new_entry_taxonomy.counter = 0
 
 def _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id):
     # Search the taxonomy table by gbif_id
-    # Returns a dict such as: {'id': 1, 'gbifId': 5, 'scientificName': 'Fungi', 'kingdom': 'Fungi', 'parentId': None}
-    # If nothing is found, returns {'id': None, 'gbifId': None, 'scientificName': None, 'kingdom': None, 'parentId': None}
+    # Returns a dict such as: {'id': 1, 'gbifId': 5, 'scientificName': 'Fungi', 'rankId': 1, 'acceptedId': None, 'parentId': None}
+    # If nothing is found, returns all None: {'id': None, 'gbifId': None, ...}
     template = """SELECT * FROM taxonomy WHERE "gbifId" = {{ gbifId }} """
     taxon_cur = execute_sql_from_jinja_string(conn, sql_string=template, context={'gbifId': gbif_id})
     taxon_values = taxon_cur.fetchall()
@@ -124,13 +126,17 @@ def _add_taxon_tree(conn, gbif_key, depth=0):
     gbif_parentKey = name_usage_info.get("parentKey")
     parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
 
+    # get accepted GBIF Key synonyms are pointing to (None for accepted taxa)
+    gbif_acceptedKey = name_usage_info.get('acceptedKey')
+    accepted_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_acceptedKey)
     print_indent(f"Recursively adding the taxon with GBIF key {gbif_key} ({scientificName}) to the taxonomy table", depth=depth)
 
     taxon = {
         'gbifId': gbifId,
         'scientificName': scientificName,
+        'rankId': _insert_or_get_rank(conn=conn, rank_name=name_usage_info.get('rank')),
         'parentId': parent_in_taxonomy.get('id'),
-        'rankId': _insert_or_get_rank(conn=conn, rank_name=name_usage_info.get('rank'))
+        'acceptedId': accepted_in_taxonomy.get('id')
     }
     # find and add taxon recursively to taxonomy table
     taxon_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_key)
@@ -144,18 +150,29 @@ def _add_taxon_tree(conn, gbif_key, depth=0):
             # get the updated parentId
             parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
             taxon['parentId'] = parent_in_taxonomy.get('id')
+        if gbif_acceptedKey is None:
+            print_indent("According to GBIF, this is *not* a synonym (no accepted taxon to insert)", depth=depth)
+        else:
+            print_indent("According to GBIF, this is a synonym. We'll insert accepted taxon first", depth=depth)
+            _add_taxon_tree(conn, gbif_key=gbif_acceptedKey, depth=depth + 1)
+            # get the updated acceptedId
+            accepted_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_acceptedKey)
+            taxon['acceptedId'] = accepted_in_taxonomy.get('id')
         newly_inserted_id = _insert_new_entry_taxonomy(conn, taxon=taxon)
-        print_indent(f"Taxon {taxon['scientificName']} inserted in taxonomy (id = {newly_inserted_id}, parentId = {taxon['parentId']}).", depth=depth)
+        if (taxon['acceptedId'] is None):
+            msg = f"Taxon {taxon['scientificName']} inserted in taxonomy (id = {newly_inserted_id}, parentId = {taxon['parentId']})."
+        else:
+            msg = f"Taxon {taxon['scientificName']} inserted in taxonomy (id = {newly_inserted_id}, parentId = {taxon['parentId']}, acceptedId = {taxon['acceptedId']})."
+        print_indent(msg, depth=depth)
     else:  # The taxon already appears in the taxonomy table
         print_indent("This taxon already appears in the taxonomy table", depth=depth)
-        if taxon.get('parentId') is None and gbif_parentKey is not None:  # it has no parent in taxonomy table, but GBIF has parent
-            # TODO: check: is this whole case and code block necessary? (doesn't appear to be called with the test data)
-            print_indent("But parents aren't there yet, inserting...", depth=depth)
-            _add_taxon_tree(conn, gbif_key=gbif_parentKey, depth=depth+1)
         # get the updated parentId
         parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
         taxon['parentId'] = parent_in_taxonomy.get('id')
-        _update_taxonomy_if_needed(conn, taxon_in_taxonomy=taxon_in_taxonomy, taxon=taxon)
+        #  get the updated acceptedId
+        accepted_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_acceptedKey)
+        taxon['acceptedId'] = accepted_in_taxonomy.get('id')
+        _update_taxonomy_if_needed(conn, taxon_in_taxonomy=taxon_in_taxonomy, taxon=taxon, depth=depth)
 
 
 def gbif_match(conn, config_parser, unmatched_only=True):
@@ -221,6 +238,13 @@ def gbif_match(conn, config_parser, unmatched_only=True):
 
         print(f"Add match information (and taxonomiyId, if a match was found) to scientificname for {name} (id: {row_id}).")
         _update_match_info(conn, match_info, row_id)
+        if (row_id % 10 == 9) and (row_id < total_sn_count - 1): # Get time info after multiple of 10 taxa
+            elapsed_time = time.time() - start
+            # notice expected time as calculated below is highly overestimated at the beginning as all trees up to
+            # kingdoms have to be built at the beginning
+            expected_time = elapsed_time / (row_id + 1) * (total_sn_count - row_id - 1)
+            print(f"{row_id + 1}/{total_sn_count} taxa handled in {round(elapsed_time, 2)}s. Expected time to go: {expected_time}s.")
+
 
     # Logging and statistics
     end = time.time()
