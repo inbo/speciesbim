@@ -151,7 +151,7 @@ def _add_taxon_tree(conn, gbif_key, depth=0):
             parent_in_taxonomy = _get_taxon_from_taxonomy_by_gbifId(conn, gbif_id=gbif_parentKey)
             taxon['parentId'] = parent_in_taxonomy.get('id')
         if gbif_acceptedKey is None:
-            print_indent("According to GBIF, this is *not* a synonym (no accepetd taxon to insert)", depth=depth)
+            print_indent("According to GBIF, this is *not* a synonym (no accepted taxon to insert)", depth=depth)
         else:
             print_indent("According to GBIF, this is a synonym. We'll insert accepted taxon first", depth=depth)
             _add_taxon_tree(conn, gbif_key=gbif_acceptedKey, depth=depth + 1)
