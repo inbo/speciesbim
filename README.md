@@ -3,6 +3,9 @@ Development of the postgreSQL species database of Brussels Environment
 
 ## Changelog / development journal
 
+- Added field `acceptedId` to `taxonomy` table. If a taxon is a synonym in GBIF Backbone, the correspondent accepted 
+taxon is added and its `id` is used as value of `acceptedId`. Exotic status of synonyms is also inherited by the 
+correspondent accepted taxa.
 - Added exotic status to `taxonomy` table (field `exotic_be`) describing whether a species is exotic in Belgium.
     Information is inferred from the GBIF checklist [Global Register of Introduced and Invasive Species - Belgium](https://www.gbif.org/dataset/6d9e952f-948c-4483-9807-575348147c7e).
     The exotic status is propagatd to all children of a taxon, if present.  
