@@ -11,7 +11,8 @@ def _iso639_1_to_2(code):
     c = {'fra': 'fr',
          'fre': 'fr',
          'nld': 'nl',
-         'dut': 'nl'}
+         'dut': 'nl',
+         'eng': 'en'}
 
     return c.get(code)
 
