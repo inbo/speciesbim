@@ -7,7 +7,7 @@ from helpers import execute_sql_from_jinja_string, get_database_connection, setu
     paginated_name_usage
 
 def _iso639_1_to_2(code):
-    """Takes a 3 letter-code (fra) and returns the corresponding 2-letter code"""
+    """Takes a 3 letter-code (fra) and returns the corresponding 2-letter code (fr)"""
     c = {'fra': 'fr',
          'fre': 'fr',
          'nld': 'nl',
