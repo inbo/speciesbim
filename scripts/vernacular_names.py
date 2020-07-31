@@ -94,7 +94,8 @@ def populate_vernacular_names(conn, config_parser, empty_only, filter_lang=None)
             name = vernacular_name.get('vernacularName')
             lang_code = filter_lang_dict[vernacular_name.get('language')]
             source = vernacular_name.get('source')
-
+            if source is None:
+                print(f"Warning: vernacular name {name} for taxon with ID: {taxonomy_id} without source. Contact GBIF: https://github.com/gbif/gbif-api/issues/56")
             msg = f"Now saving '{name}'({lang_code}) for taxon with ID: {taxonomy_id} (source: {source})"
             print(msg)
             logging.info(msg)
