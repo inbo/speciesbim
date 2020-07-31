@@ -48,9 +48,10 @@ def _get_vernacular_names_gbif(gbif_taxon_id, languages3=None):
     return names_data
 
 
-def populate_vernacular_names(conn, config_parser, empty_only):
+def populate_vernacular_names(conn, config_parser, empty_only, filter_lang=None):
     # If empty only, only process the taxa currently without vernacular names
     # Otherwise, process all entries in the taxonomy table
+    # filter_lang is a list of language codes (ISO 639-1 Code) (default: no filtering)
     if empty_only:
         taxa_selection_sql = """SELECT *
                                 FROM taxonomy
@@ -61,9 +62,22 @@ def populate_vernacular_names(conn, config_parser, empty_only):
     limit = config_parser.get('vernacular_names', 'taxa-limit')
     cur = execute_sql_from_jinja_string(conn, sql_string=taxa_selection_sql, context={'limit': limit}, dict_cursor=True)
 
-    msg = f"We'll now load vernacular names for {cur.rowcount} entries in the taxonomy table."
+    msg = f"We'll now load vernacular names for {cur.rowcount} entries in the taxonomy table. Languages: "
+    if filter_lang is not None:
+        msg += ", ".join(filter_lang)
     print(msg)
     logging.info(msg)
+
+    # Create dictionary mapping 3-letter codes (as stored in GBIF) and 2-letter codes
+    if filter_lang is not None:
+        filter_lang_dict = _iso639_1_to_2_dict(filter_lang)
+    else:
+        filter_lang_dict = None
+
+    # Get list of 3-letters format languages
+    languages3 = None
+    if filter_lang_dict is not None:
+        languages3 = list(filter_lang_dict.keys())
 
     total_vernacularnames_counter = 0
     total_taxa_counter = 0
@@ -75,10 +89,10 @@ def populate_vernacular_names(conn, config_parser, empty_only):
 
         total_taxa_counter += 1
 
-        vns = _get_vernacular_names_gbif(gbif_taxon_id, filter_lang=['fra', 'nld'])
+        vns = _get_vernacular_names_gbif(gbif_taxon_id, languages3=languages3)
         for vernacular_name in vns:
             name = vernacular_name.get('vernacularName')
-            lang_code = _iso639_1_to_2(vernacular_name.get('language'))
+            lang_code = filter_lang_dict[vernacular_name.get('language')]
             source = vernacular_name.get('source')
 
             msg = f"Now saving '{name}'({lang_code}) for taxon with ID: {taxonomy_id} (source: {source})"
