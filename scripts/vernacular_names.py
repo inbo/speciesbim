@@ -1,7 +1,6 @@
 import logging
 import time
 
-from pygbif import species
 
 from helpers import execute_sql_from_jinja_string, get_database_connection, setup_log_file, get_config, \
     paginated_name_usage
