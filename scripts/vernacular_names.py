@@ -14,8 +14,6 @@ def _iso639_1_to_2_dict(lang):
         {'fra': 'fr',
          'fre': 'fr',
          'nld': 'nl',
-def _get_vernacular_names_gbif(gbif_taxon_id, filter_lang=None):
-    # filter_lang is a list of language codes (ISO 639-2 Code) (default: no filtering)
          'dut': 'nl'}
         """
     languages_info = [pylang.get(alpha_2=l) for l in lang]
@@ -29,6 +27,9 @@ def _get_vernacular_names_gbif(gbif_taxon_id, filter_lang=None):
     gbif_languages = dict(gbif_languages)
     return gbif_languages
 
+def _get_vernacular_names_gbif(gbif_taxon_id, languages3=None):
+    # languages3 is a list of 3-letter language codes (ISO 639-1 Code) (default: no filtering)
+    # GBIF uses ISO 639-2 codes (3-letters format)
     # !! Synonyms !!: GBIF uses 'fra' for french and 'nld' for dutch
     # example: ['fra', 'nld']
 
@@ -41,8 +42,8 @@ def _get_vernacular_names_gbif(gbif_taxon_id, filter_lang=None):
 
     names_data = paginated_name_usage(key=gbif_taxon_id, data="vernacularNames")
 
-    if filter_lang is not None:
-        names_data = [nd for nd in names_data if nd['language'] in filter_lang]
+    if languages3 is not None:
+        names_data = [nd for nd in names_data if nd['language'] in languages3]
 
     return names_data
 
