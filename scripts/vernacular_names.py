@@ -117,5 +117,6 @@ if __name__ == "__main__":
     connection = get_database_connection()
     config = get_config()
     setup_log_file("./logs/vernacular_names.csv")
-
-    populate_vernacular_names(connection, config_parser=config, empty_only=False)
+    # list of 2-letters language codes (ISO 639-1)
+    languages = ['fr', 'nl', 'en']
+    populate_vernacular_names(connection, config_parser=config, empty_only=False, filter_lang=languages)
