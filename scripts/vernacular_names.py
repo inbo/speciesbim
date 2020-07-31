@@ -5,19 +5,30 @@ from pycountry import languages as pylang
 from helpers import execute_sql_from_jinja_string, get_database_connection, setup_log_file, get_config, \
     paginated_name_usage
 
-def _iso639_1_to_2(code):
-    """Takes a 3 letter-code (fra) and returns the corresponding 2-letter code (fr)"""
-    c = {'fra': 'fr',
+def _iso639_1_to_2_dict(lang):
+    """
+    Takes some 2 letter-code languages (['fr', 'nl']).
+    Returns a dictionary with the corresponding 3-letter codes ('fra', 'nld') and bibliogaphic synonyms ('fre', 'dut')
+    as keys, the corresponding 2-leter-code languages as values.
+    Example:
+        {'fra': 'fr',
          'fre': 'fr',
          'nld': 'nl',
-         'dut': 'nl',
-         'eng': 'en'}
-
-    return c.get(code)
-
-
 def _get_vernacular_names_gbif(gbif_taxon_id, filter_lang=None):
     # filter_lang is a list of language codes (ISO 639-2 Code) (default: no filtering)
+         'dut': 'nl'}
+        """
+    languages_info = [pylang.get(alpha_2=l) for l in lang]
+    # attributes to search for in a language object
+    attributes = ['alpha_3', 'bibliographic']
+    # create a dictionary with 3-letters as keys and 2-letter format as values
+    # something like {'fra': 'fr', 'fre': 'fr', 'nld': 'nl', 'dut': 'nl', 'eng': 'en'}
+    gbif_languages = [(getattr(language_info, i), getattr(language_info, "alpha_2")) for language_info in languages_info
+                      for i in attributes if
+                      i in dir(language_info)]
+    gbif_languages = dict(gbif_languages)
+    return gbif_languages
+
     # !! Synonyms !!: GBIF uses 'fra' for french and 'nld' for dutch
     # example: ['fra', 'nld']
 
