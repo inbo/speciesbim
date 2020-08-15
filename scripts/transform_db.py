@@ -55,7 +55,7 @@ with conn:
     languages = ['fr', 'nl', 'en']
     vernacular_names.populate_vernacular_names(conn, config_parser=config, empty_only=False, filter_lang=languages)
 
-    message = "Step 7: populate field exotic_be (values: True of False) from GRIIS checklist for each entry in taxonomy table."
+    message = "Step 7: populate field exotic_be (values: True of False) from GRIIS checklist for each entry in taxonomy table"
     print(message)
     logging.info(message)
     # GBIF datasetKey of checklist: Global Register of Introduced and Invasive Species - Belgium
