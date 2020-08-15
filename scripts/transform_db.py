@@ -29,7 +29,7 @@ with conn:
     logging.info(message)
     execute_sql_from_file(conn, 'create_new_tables.sql')
 
-    message = "Step 3: populate the scientificname tables based on the actual content"
+    message = "Step 3: populate the scientificname table based on the actual content"
     print(message)
     logging.info(message)
     execute_sql_from_file(conn, 'populate_scientificname.sql',
