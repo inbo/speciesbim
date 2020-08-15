@@ -14,15 +14,15 @@ def _get_annex(path):
         fields = next(annex_data)
         for (i, row) in enumerate(annex_data):
             id = i+1
-            scientific_name = row[1]
+            scientific_name_original = row[1]
             scientific_name_corrected = row[2]
             annex_id = row[0]
             remarks = row[4]
             scientificnames_annex[id] = {'id': id,
-                                        'scientificName': scientific_name,
-                                        'scientificNameCorrected': scientific_name_corrected,
+                                        'scientificNameOriginal': scientific_name_original,
+                                        'scientificName': scientific_name_corrected,
                                         'annexcode': annex_id,
-                                         'remarks': remarks}
+                                        'remarks': remarks}
     return scientificnames_annex
 
 def populate_scientificname_annex(conn, config_parser, annex_file):

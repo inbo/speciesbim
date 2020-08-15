@@ -32,8 +32,8 @@ CREATE TABLE scientificname (
 CREATE TABLE scientificnameannex (
     "id" serial PRIMARY KEY,
     "taxonomyId" integer REFERENCES taxonomy(id), -- Can be null if no match
-    "scientificName" character varying(1023) NOT NULL, -- as appear in the original annexes
-    "scientificNameCorrected" character varying(255), -- corrected names (typos, ...)
+    "scientificNameOriginal" character varying(1023) NOT NULL, -- as appear in the original annexes
+    "scientificName" character varying(255), -- corrected names (typos, ...)
     "annexcode" character varying(255) REFERENCES annex(annexcode),
     -- !! the following field are attributes of the match process !!
     "lastMatched" timestamp with time zone, -- when was a GBIF match last attempted?
