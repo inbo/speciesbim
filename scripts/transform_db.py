@@ -8,6 +8,7 @@ import os
 import gbif_match
 import vernacular_names
 import exotic_status
+import populate_scientificname_annex
 import logging
 
 from helpers import execute_sql_from_file, get_database_connection, get_config, setup_log_file
@@ -35,20 +36,26 @@ with conn:
     execute_sql_from_file(conn, 'populate_scientificname.sql',
                           {'limit': config.get('transform_db', 'scientificnames-limit')})
 
-    message = "Step 4: populate taxonomy table with matches to GBIF Backbone and related backbone tree " +\
+    message = "Step 4: populate the scientificnameannex table based on official annexes"
+    print(message)
+    logging.info(message)
+    annex_file_path = "../data/raw/official_annexes.csv"
+    populate_scientificname_annex.populate_scientificname_annex(conn, config_parser=config, annex_file=annex_file_path)
+
+    message = "Step 5: populate taxonomy table with matches to GBIF Backbone and related backbone tree " +\
               "and update scientificname table"
     print(message)
     logging.info(message)
     gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)
 
-    message = "Step 5: populate vernacular names from GBIF for each entry in the taxonomy table"
+    message = "Step 6: populate vernacular names from GBIF for each entry in the taxonomy table"
     print(message)
     logging.info(message)
     # list of 2-letters language codes (ISO 639-1)
     languages = ['fr', 'nl', 'en']
     vernacular_names.populate_vernacular_names(conn, config_parser=config, empty_only=False, filter_lang=languages)
 
-    message = "Step 6: populate field exotic_be (values: True of False) from GRIIS checklist for each entry in taxonomy table."
+    message = "Step 7: populate field exotic_be (values: True of False) from GRIIS checklist for each entry in taxonomy table."
     print(message)
     logging.info(message)
     # GBIF datasetKey of checklist: Global Register of Introduced and Invasive Species - Belgium
