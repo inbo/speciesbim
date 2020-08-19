@@ -35,7 +35,7 @@ CREATE TABLE scientificnameannex (
     "scientificNameOriginal" character varying(1023) NOT NULL, -- as appear in the original annexes
     "scientificName" character varying(255), -- corrected names (typos, ...)
     "remarks" character varying (1023), -- remarks about correction
-    "annexcode" character varying(255) REFERENCES annex(annexcode),
+    "annexCode" character varying(255) REFERENCES annex(annexcode),
     -- !! the following field are attributes of the match process !!
     "lastMatched" timestamp with time zone, -- when was a GBIF match last attempted?
     "matchConfidence" smallint,
