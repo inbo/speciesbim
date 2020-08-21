@@ -2871,7 +2871,7 @@ EUR-CON-BER_Annex III,Castor fiber,Castor fiber,2,
 EUR-CON-BER_Annex III,Microtus nivalis (lebrunii),Microtus nivalis,2,removed  (lebrunii)
 EUR-CON-BER_Annex III,Microtus ratticeps (oeconomus),Microtus ratticeps,2,removed (oeconomus)
 EUR-CON-BER_Annex III,all species of Gliridae,Gliridae,2,
-EUR-CON-BER_Annex III,All species of Cetacea not mentioned in Appendix II,Cetacea,3,
+EUR-CON-BER_Annex III,all species of Cetacea not mentioned in Appendix II,,3,
 EUR-CON-BER_Annex III,Martes foina,Martes foina,3,
 EUR-CON-BER_Annex III,Martes martes,Martes martes,3,
 EUR-CON-BER_Annex III,Meles meles,Meles meles,3,
@@ -2893,9 +2893,9 @@ EUR-CON-BER_Annex III,Capra ibex,Capra ibex,3,
 EUR-CON-BER_Annex III,Capra pyrenaica,Capra pyrenaica,3,
 EUR-CON-BER_Annex III,"Ovis aries (musimon, ammon)",Ovis aries,3,"removed  (musimon, ammon)"
 EUR-CON-BER_Annex III,Rupicapra rupicapra,Rupicapra rupicapra,3,
-EUR-CON-BER_Annex III,"All species of Birds not included in Appendix II with the exception of Columba palumbus, Corvus corone (corone and/et cornix), Corvus frugilegus, Corvus monedula, Garrulus glandarius, Larus argentatus, Larus fuscus, Larus marinus, Passer domesticus, Sturnus vulgaris, Pica pica",Aves,4,
-EUR-CON-BER_Annex III,All species of reptiles not included in Appendix II,Reptilia,4,
-EUR-CON-BER_Annex III,All species of Amphibians not included in Appendix II,Amphibia,4,
+EUR-CON-BER_Annex III,"All species of Birds not included in Appendix II with the exception of Columba palumbus, Corvus corone (corone and/et cornix), Corvus frugilegus, Corvus monedula, Garrulus glandarius, Larus argentatus, Larus fuscus, Larus marinus, Passer domesticus, Sturnus vulgaris, Pica pica",,4,
+EUR-CON-BER_Annex III,All species of reptiles not included in Appendix II,,4,
+EUR-CON-BER_Annex III,All species of Amphibians not included in Appendix II,,4,
 EUR-CON-BER_Annex III,Isurus oxyrinchus (Med.),Isurus oxyrinchus,4,removed (Med.)
 EUR-CON-BER_Annex III,Lamna nasus (Med.),Lamna nasus,4,removed (Med.)
 EUR-CON-BER_Annex III,Prionace glauca (Med.),Prionace glauca,4,removed (Med.)
