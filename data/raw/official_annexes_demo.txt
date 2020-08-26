@@ -1,0 +1,23 @@
+annex_code,scientific_name_original,scientific_name_corrected,page_number,remarks
+BXL-ORD-2012_Annex II.1,Falco peregrinus,Falco peregrinus,48,
+BXL-ORD-2012_Annex II.2,Aconitum corsicum Gayer (Aconitum napellus subsp. corsicum),Aconitum napellus subsp. corsicum,67,"Removed Aconitum corsicum Gayer, synonym of Aconitum napellus subsp. corsicum"
+BXL-ORD-2012_Annex II.2,"Alle soorten van het geslacht Rosa waarvan het natuurlijk verspreidingsgebied geheel of gedeeltelijk het nationaal grondgebied omvat, met uitzondering van Rosa arvensis en Rosa canina L.",,68,
+BXL-ORD-2012_Annex II.3,Phaneroptera falcate,Phaneroptera falcata,77,changed e to a
+BXL-ORD-2012_Annex II.3,Valeriana repens,,79,Multiple authorships: Valeriana repens Wall. (synonym of Valeriana hardwickei Wall.) and Valeriana repens Host (synonym of Valeriana excelsa subsp. excelsa)
+BXL-ORD-2012_Annex II.4,Martes Martes,Martes martes,80,decapitalized specific epithet
+BXL-ORD-2012_Annex II.5,Alle inheemse soorten van vissen niet vermeld in bijlage II.2 of II.3,,81,
+BXL-ORD-2012_Annex II.5,Alle europese soorten van Barbus,,81,
+BXL-ORD-2012_Annex II.5,Leuciscus microlepis,Squalius microlepis,82,"Changed to its related accepted taxon within Squalius genus. Leuciscus microlepis Bleeker, 1853 is a proparte synonym and classified in two different genera on GBIF, but the other accepted taxon is very unlikely to be true: Amblypharyngodon microlepis (Bleeker, 1853)"
+BXL-ORD-2012_Annex II.5,Spongia zimocca (Med),Spongia zimocca,85,removed (Med.)
+BXL-ORD-2012_Annex II.5,Alle inheemse macrofunghi soorten,,86,
+BXL-ORD-2012_Annex III,Sus scofra,Sus scrofa,88,scofra to scrofa
+BXL-ORD-2012_Annex IV,Rana (Pelophylax) ridibunda,Rana ridibunda,89,removed (Pelophylax)
+BXL-ORD-2012_Annex IV,Fallopia japonica,Fallopia japonica,89,
+EUR-CON-BER_Annex I,Pulsatilla grandis Wend. (Pulsatilla vulgaris subsp. grandis (Wend.) Zamels,Pulsatilla grandis Wender.,13,"removed Pulsatilla vulgaris subsp. grandis (Wend.) Zamels, synonym of Pulsatilla grandis subsp. grandis"
+EUR-CON-BER_Annex II,all species of microchiroptera except Pipistrellus pipistrellus,,2,
+EUR-CON-BER_Annex II,all species of Ursidae,Ursidae,3,
+EUR-CON-BER_Annex II,Coluber rubriceps (Coluber najadum rubriceps),Coluber rubriceps,15,since 8 March 2018 | removed (Coluber najadum rubriceps) both synonyms of Coluber najadum rubriceps
+UN-CON-BON-Annex I,Calidris pygmaea,Calidris pygmea,,removed a
+UN-CON-BON-Annex II,Rhinolophidae spp.,Rhinolophidae,,
+EUR-DIR-HAB_Annex II,Salmo salar (only in fresh water) (except the Finnish populations),Salmo salar,,removed (only in fresh water) (except the Finnish populations)
+EUR-DIR-HAB_Annex IV,"Canis lupus (except the Greek populations north of the 39th parallel; Estonian populations, Spanish populations north of the Duero; Bulgarian, Latvian, Lithuanian, Polish, Slovak populations and Finnish populations within the reindeer management area as defined in paragraph 2 of the Finnish Act No 848/90 of 14 September 1990 on reindeer management)",Canis lupus,,"removed (except the Greek populations north of the 39th parallel; Estonian populations, Spanish populations north of the Duero; Bulgarian, Latvian, Lithuanian, Polish, Slovak populations and Finnish populations within the reindeer management area as defined in paragraph 2 of the Finnish Act No 848/90 of 14 September 1990 on reindeer management)"
