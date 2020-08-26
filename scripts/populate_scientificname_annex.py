@@ -57,6 +57,11 @@ def populate_scientificname_annex(conn, config_parser, annex_file):
             counter_insertions += 1
         else:
             break
+        if (counter_insertions % 10 == 0):
+            elapsed_time = time.time() - start
+            expected_time = elapsed_time / counter_insertions * n_taxa_max
+            print(
+                f'{counter_insertions}/{n_taxa_max} taxa inserted in scientificnameannex in {round(elapsed_time, 2)}s. Expected time to go: {expected_time}s.')
     # Logging and statistics
     end = time.time()
     n_taxa_inserted = f"Total number of taxa inserted in scientificnameannex: {counter_insertions}"
