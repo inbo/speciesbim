@@ -33,16 +33,16 @@ def populate_scientificname_annex(conn, config_parser, annex_file):
     the table
 
     """
+    annex_names = _get_annex(path=annex_file)
+    message_n_names_in_annex_file = 'Number of taxa listed in official annexes and ordinances:' + str(len(annex_names))
+    print(message_n_names_in_annex_file)
+    logging.info(message_n_names_in_annex_file)
     n_taxa_max = config_parser.get('scientificname_annex', 'taxa-limit')
     if len(n_taxa_max) > 0:
         n_taxa_max = int(n_taxa_max)
     else:
         n_taxa_max = None
     start = time.time()
-    annex_names = _get_annex(path=annex_file)
-    message_n_names_in_annex_file = "Number of taxa/groups defined in official annexes and ordinances:" + str(len(annex_names))
-    print(message_n_names_in_annex_file)
-    logging.info(message_n_names_in_annex_file)
     counter_insertions = 0
     for value in annex_names.values():
         values = value.values()
