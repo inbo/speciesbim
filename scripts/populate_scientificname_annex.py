@@ -55,13 +55,14 @@ def populate_scientificname_annex(conn, config_parser, annex_file):
                 context={'col_names': tuple(fields), 'values': tuple(values)}
             )
             counter_insertions += 1
+            # running infos on screen (no logging)
+            if counter_insertions % 20 == 0:
+                elapsed_time = time.time() - start
+                expected_time = elapsed_time / counter_insertions * (n_taxa_max - counter_insertions)
+                info_message = "\r" + f"{counter_insertions}/{n_taxa_max} taxa inserted in scientificnameannex in {round(elapsed_time, 2)}s. Expected time to go: {round(expected_time, 2)}s."
+                print(info_message, end="", flush=True)
         else:
             break
-        if (counter_insertions % 10 == 0):
-            elapsed_time = time.time() - start
-            expected_time = elapsed_time / counter_insertions * n_taxa_max
-            print(
-                f'{counter_insertions}/{n_taxa_max} taxa inserted in scientificnameannex in {round(elapsed_time, 2)}s. Expected time to go: {expected_time}s.')
     # Logging and statistics
     end = time.time()
     n_taxa_inserted = f"Total number of taxa inserted in scientificnameannex: {counter_insertions}"
