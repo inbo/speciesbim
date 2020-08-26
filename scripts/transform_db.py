@@ -4,7 +4,6 @@
 # Before running this script, make sure you have a config.ini file in the current directory
 # It should contain DB connection information (set up an external tunnel if necessary)
 # You can start by copying config.ini.example to config.ini and change its content.
-import os
 import gbif_match
 import vernacular_names
 import exotic_status
