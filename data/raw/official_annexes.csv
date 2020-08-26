@@ -203,7 +203,7 @@ BXL-ORD-2012_Annex II.2,Geomalacus maculosus,Geomalacus maculosus,55,
 BXL-ORD-2012_Annex II.2,Geomitra moniziana,Geomitra moniziana,55,
 BXL-ORD-2012_Annex II.2,Helix subplicata,Helix subplicata,55,
 BXL-ORD-2012_Annex II.2,Hygromia kovacsi,Hygromia kovacsi,55,
-BXL-ORD-2012_Annex II.2,Idiomela (Helix) subplicata,Idiomela (Helix) subplicata,55,
+BXL-ORD-2012_Annex II.2,Idiomela (Helix) subplicata,Idiomela subplicata,55,"Removed Helix, Helix subplicata already present and synonym of Idiomela subplicata"
 BXL-ORD-2012_Annex II.2,Lampedusa imitatrix,Lampedusa imitatrix,55,
 BXL-ORD-2012_Annex II.2,Lampedusa melitensis,Lampedusa melitensis,55,
 BXL-ORD-2012_Annex II.2,Leiostyla abbreviata,Leiostyla abbreviata,55,
@@ -511,7 +511,7 @@ BXL-ORD-2012_Annex II.2,Draba aizoides L.,Draba aizoides L.,61,
 BXL-ORD-2012_Annex II.2,Draba cacuminum Elis Ekman,Draba cacuminum Elis Ekman,61,
 BXL-ORD-2012_Annex II.2,Draba cinerea Adams,Draba cinerea Adams,61,
 BXL-ORD-2012_Annex II.2,Draba dorneri Heuffel.,Draba dorneri Heuffel.,61,
-BXL-ORD-2012_Annex II.2,FErucastrum palustre (Pirona) Vis.,FErucastrum palustre (Pirona) Vis.,61,
+BXL-ORD-2012_Annex II.2,FErucastrum palustre (Pirona) Vis.,Ferucastrum palustre (Pirona) Vis.,61,Replace E with e
 BXL-ORD-2012_Annex II.2,Erysimum pieninicum (Zapal.) Pawl.,Erysimum pieninicum (Zapal.) Pawl.,61,
 BXL-ORD-2012_Annex II.2,Iberis arbuscula Runemark,Iberis arbuscula Runemark,61,
 BXL-ORD-2012_Annex II.2,Iberis procumbens Lange subsp. microcarpa Franco & Pinto da Silva,Iberis procumbens Lange subsp. microcarpa Franco & Pinto da Silva,61,
@@ -616,7 +616,7 @@ BXL-ORD-2012_Annex II.2,Dracocephalum ruyschiana L.,Dracocephalum ruyschiana L.,
 BXL-ORD-2012_Annex II.2,Micromeria taygetea P.H.Davis,Micromeria taygetea P.H.Davis,64,
 BXL-ORD-2012_Annex II.2,Nepeta dirphya (Boiss.) Heldr. ex Halacsy,Nepeta dirphya (Boiss.) Heldr. ex Halacsy,64,
 BXL-ORD-2012_Annex II.2,Nepeta sphaciotica P.H.Davis,Nepeta sphaciotica P.H.Davis,64,
-BXL-ORD-2012_Annex II.2,Origanum cordifolium (Auch. & Montbr.) Vogel (Amaracus cordifolium Montr. & Auch.),Origanum cordifolium (Auch. & Montbr.) Vogel (Amaracus cordifolium Montr. & Auch.),64,
+BXL-ORD-2012_Annex II.2,Origanum cordifolium (Auch. & Montbr.) Vogel (Amaracus cordifolium Montr. & Auch.),Origanum cordifolium (Auch. & Montbr.) Vogel,64,"removed (Amaracus cordifolius Montr. & Auch.), it is a synonym and contains a typo: it should be Amaracus cordifolium"
 BXL-ORD-2012_Annex II.2,Origanum dictamnus L.,Origanum dictamnus L.,64,
 BXL-ORD-2012_Annex II.2,Origanum scabrum Boiss. & Heldr,Origanum scabrum Boiss. & Heldr,64,
 BXL-ORD-2012_Annex II.2,Phlomis brevibracteata Turril,Phlomis brevibracteata Turril,64,
@@ -1459,7 +1459,7 @@ BXL-ORD-2012_Annex II.5,Alle europese soorten van Coregonus,,83,
 BXL-ORD-2012_Annex II.5,Thymallus thymallus,Thymallus thymallus,83,
 BXL-ORD-2012_Annex II.5,"Alle europese soorten van Coregonus, behalve Coregonus oxyrhyn",,83,
 BXL-ORD-2012_Annex II.5,Hucho hucho,Hucho hucho,83,
-BXL-ORD-2012_Annex II.5,Salmo salar (alleen in zoet water),,83,
+BXL-ORD-2012_Annex II.5,Salmo salar (alleen in zoet water),Salmo salar,83,removed (alleen in zoet water)
 BXL-ORD-2012_Annex II.5,Thymallus thymallus,Thymallus thymallus,84,
 BXL-ORD-2012_Annex II.5,Cottus poecilopus,Cottus poecilopus,84,
 BXL-ORD-2012_Annex II.5,Myoxocephalus quadricornis,Myoxocephalus quadricornis,84,
@@ -2662,7 +2662,7 @@ EUR-CON-BER_Annex II,Coluber gemonensis,Coluber gemonensis,15,
 EUR-CON-BER_Annex II,Coluber hippocrepis,Coluber hippocrepis,15,
 EUR-CON-BER_Annex II,Coluber jugularis,Coluber jugularis,15,"since 8 March 2018 | Coluber jugularis has been divided into two new species:
   Coluber jugularis, Coluber caspius (Coluber jugularis caspius)"
-EUR-CON-BER_Annex II,Coluber caspius (Coluber jugularis caspius),Coluber caspius,15,"since 8 March 2018 | removed (Coluber jugularis caspius) both synonyms of Dolichophis caspius | since 8 March 2018 - Coluber jugularis has been divided into two new species:
+EUR-CON-BER_Annex II,Coluber caspius (Coluber jugularis caspius),Coluber caspius,15,"since 8 March 2018 | removed (Coluber jugularis caspius) both synonyms of Dolichophis caspius | Coluber jugularis has been divided into two new species:
   Coluber jugularis, Coluber caspius (Coluber jugularis caspius)"
 EUR-CON-BER_Annex II,Coluber najadum,Coluber najadum,15,since 8 March 2018
 EUR-CON-BER_Annex II,Coluber rubriceps (Coluber najadum rubriceps),Coluber rubriceps,15,since 8 March 2018 | removed (Coluber najadum rubriceps) both synonyms of Coluber najadum rubriceps
