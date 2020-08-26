@@ -15,15 +15,18 @@ def _get_annex(path):
         fields = next(annex_data)
         print("Columns in " + path + ": " + ", ".join(fields))
         for (i, row) in enumerate(annex_data):
-            id = i+1
+            id = i + 1
             scientific_name_original = row[1]
             scientific_name_corrected = row[2]
             annex_id = row[0]
             remarks = row[4]
             scientificnames_annex[id] = {'id': id,
                                          'scientificNameOriginal': scientific_name_original,
+                                         'scientificName': scientific_name_corrected,
+                                         'annexCode': annex_id,
                                          'remarks': remarks}
     return scientificnames_annex
+
 
 def populate_scientificname_annex(conn, config_parser, annex_file):
     """ Populate the table scientificnameannex
@@ -33,7 +36,8 @@ def populate_scientificname_annex(conn, config_parser, annex_file):
 
     """
     annex_names = _get_annex(path=annex_file)
-    message_n_names_in_annex_file = 'Number of taxa listed in official annexes and ordinances :' + str(len(annex_names))
+    message_n_names_in_annex_file = "Number of taxa listed in official annexes and ordinances: " + \
+                                    str(len(annex_names))
     print(message_n_names_in_annex_file)
     logging.info(message_n_names_in_annex_file)
     n_taxa_max = config_parser.get('scientificname_annex', 'taxa-limit')
@@ -46,8 +50,9 @@ def populate_scientificname_annex(conn, config_parser, annex_file):
     for value in annex_names.values():
         values = value.values()
         fields = value.keys()
-        if (counter_insertions < n_taxa_max):
-            template = """INSERT INTO scientificnameannex ({{ col_names | surround_by_quote | join(', ') | sqlsafe }}) VALUES {{ values | inclause }}"""
+        if counter_insertions < n_taxa_max:
+            template = """INSERT INTO scientificnameannex ({{ col_names | surround_by_quote | join(', ') | sqlsafe 
+            }}) VALUES {{ values | inclause }} """
             execute_sql_from_jinja_string(
                 conn,
                 template,
@@ -58,7 +63,10 @@ def populate_scientificname_annex(conn, config_parser, annex_file):
             if counter_insertions % 20 == 0:
                 elapsed_time = time.time() - start
                 expected_time = elapsed_time / counter_insertions * (n_taxa_max - counter_insertions)
-                info_message = "\r" + f"{counter_insertions}/{n_taxa_max} taxa inserted in scientificnameannex in {round(elapsed_time, 2)}s. Expected time to go: {round(expected_time, 2)}s."
+                info_message = "\r" + \
+                               f"{counter_insertions}/{n_taxa_max} taxa inserted in scientificnameannex in" + \
+                               f" {round(elapsed_time, 2)}s." + \
+                               f" Expected time to go: {round(expected_time, 2)}s."
                 print(info_message, end="", flush=True)
         else:
             break
