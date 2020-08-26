@@ -3,6 +3,7 @@ from csv import reader
 import time
 import logging
 
+
 def _get_annex(path):
     """ Read taxa from file with list of taxa (names) contained in official annexes
 
@@ -12,7 +13,7 @@ def _get_annex(path):
         annex_data = reader(csvfile)
         scientificnames_annex = dict()
         fields = next(annex_data)
-        print("Columns in "+ path + ": " + ", ".join(fields))
+        print("Columns in " + path + ": " + ", ".join(fields))
         for (i, row) in enumerate(annex_data):
             id = i+1
             scientific_name_original = row[1]
@@ -20,10 +21,8 @@ def _get_annex(path):
             annex_id = row[0]
             remarks = row[4]
             scientificnames_annex[id] = {'id': id,
-                                        'scientificNameOriginal': scientific_name_original,
-                                        'scientificName': scientific_name_corrected,
-                                        'annexCode': annex_id,
-                                        'remarks': remarks}
+                                         'scientificNameOriginal': scientific_name_original,
+                                         'remarks': remarks}
     return scientificnames_annex
 
 def populate_scientificname_annex(conn, config_parser, annex_file):
