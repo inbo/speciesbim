@@ -12,6 +12,7 @@ def _get_annex(path):
         annex_data = reader(csvfile)
         scientificnames_annex = dict()
         fields = next(annex_data)
+        print("Columns in "+ path + ": " + ", ".join(fields))
         for (i, row) in enumerate(annex_data):
             id = i+1
             scientific_name_original = row[1]
