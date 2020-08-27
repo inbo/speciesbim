@@ -22,6 +22,8 @@ ANNEX_FILE_PATH_DEMO = os.path.join(__location__, "../data/raw/official_annexes_
 setup_log_file(LOG_FILE_PATH)
 conn = get_database_connection()
 config = get_config()
+# activate/deactivate demo mode
+demo = config.getboolean('demo_mode', 'demo')
 
 with conn:
     message = "Step 1: Drop our new tables if they already exists (idempotent script)"
