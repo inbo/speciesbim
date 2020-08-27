@@ -261,6 +261,6 @@ def gbif_match(conn, config_parser, unmatched_only=True):
 if __name__ == "__main__":
     connection = get_database_connection()
     config = get_config()
-    setup_log_file("./logs/match_names_to_gbif_backbone_log.csv")
+    setup_log_file("./logs/match_names_to_gbif_backbone.log")
 
     gbif_match(conn=connection, config_parser=config, unmatched_only=False)

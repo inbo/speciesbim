@@ -13,7 +13,10 @@ import logging
 
 from helpers import execute_sql_from_file, get_database_connection, get_config, setup_log_file
 
-LOG_FILE_PATH = "./logs/transform_db_log.csv"
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+LOG_FILE_PATH = "./logs/transform_db.log"
+ANNEX_FILE_PATH = os.path.join(__location__, "../data/raw/official_annexes.csv")
 
 setup_log_file(LOG_FILE_PATH)
 conn = get_database_connection()
@@ -39,8 +42,7 @@ with conn:
     message = "Step 4: populate the scientificnameannex table based on official annexes"
     print(message)
     logging.info(message)
-    annex_file_path = "../data/raw/official_annexes.csv"
-    populate_scientificname_annex.populate_scientificname_annex(conn, config_parser=config, annex_file=annex_file_path)
+    populate_scientificname_annex.populate_scientificname_annex(conn, config_parser=config, annex_file=ANNEX_FILE_PATH)
 
     message = "Step 5: populate taxonomy table with matches to GBIF Backbone and related backbone tree " +\
               "and update scientificname table"
