@@ -186,8 +186,13 @@ def gbif_match(conn, config_parser, unmatched_only=True):
                                      'unmatched_only': unmatched_only},
                                     dict_cursor=True)
     total_sn_count = scientificname_cur.rowcount
-    print(f"Number of taxa in scientificname table: {total_sn_count}.")
-    log = f"Match names (scientificName + authorship) to GBIF Backbone. "
+    n_taxa_message = f"Number of taxa in scientificname table: {total_sn_count}"
+    if demo:
+        n_taxa_message += " (demo mode)"
+    print(n_taxa_message)
+    log = f"Match names (scientificName + authorship) to GBIF Backbone"
+    if demo:
+        log += " (demo mode)"
     print(log)
     logging.info(log)
 
