@@ -45,13 +45,21 @@ with conn:
     message = "Step 4: populate the scientificnameannex table based on official annexes"
     print(message)
     logging.info(message)
-    populate_scientificname_annex.populate_scientificname_annex(conn, config_parser=config, annex_file=ANNEX_FILE_PATH)
+    if not demo:
+        populate_scientificname_annex.populate_scientificname_annex(conn, config_parser=config,
+                                                                    annex_file=ANNEX_FILE_PATH)
+    else:
+        populate_scientificname_annex.populate_scientificname_annex(conn, config_parser=config,
+                                                                    annex_file=ANNEX_FILE_PATH_DEMO)
 
     message = "Step 5: populate taxonomy table with matches to GBIF Backbone and related backbone tree " +\
               "and update scientificname table"
     print(message)
     logging.info(message)
-    gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)
+    if not demo:
+        gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)
+    else:
+        gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)
 
     message = "Step 6: populate vernacular names from GBIF for each entry in the taxonomy table"
     print(message)
