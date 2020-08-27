@@ -66,4 +66,11 @@ if __name__ == "__main__":
     config = get_config()
     setup_log_file("./logs/populate_scientificnameannex_log.csv")
     annex_file_path = "../data/raw/official_annexes.csv"
-    populate_scientificname_annex(conn=connection, config_parser=config, annex_file=annex_file_path)
+    # for demo
+    annex_file_path_demo = "../data/raw/official_annexes_demo.csv"
+    demo = config.getboolean('demo_mode', 'demo')
+
+    if not demo:
+        populate_scientificname_annex(conn=connection, config_parser=config, annex_file=annex_file_path)
+    else:
+        populate_scientificname_annex(conn=connection, config_parser=config, annex_file=annex_file_path_demo)
