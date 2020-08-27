@@ -15,7 +15,7 @@ from helpers import execute_sql_from_file, get_database_connection, get_config, 
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-LOG_FILE_PATH = "./logs/transform_db_log.csv"
+LOG_FILE_PATH = "./logs/transform_db.log"
 ANNEX_FILE_PATH = os.path.join(__location__, "../data/raw/official_annexes.csv")
 
 setup_log_file(LOG_FILE_PATH)
