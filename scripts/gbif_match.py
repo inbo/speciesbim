@@ -176,18 +176,15 @@ def _add_taxon_tree(conn, gbif_key, depth=0):
 
 
 def gbif_match(conn, config_parser, unmatched_only=True):
+    limit = config_parser.get('gbif_match', 'scientificnames-limit')
+    demo = config_parser.getboolean('demo_mode', 'demo')
     # get data from the scientificname table
-    if not unmatched_only:
-        scientificname_cur = execute_sql_from_file(conn,
+    scientificname_cur = execute_sql_from_file(conn,
                                     'get_names_scientificname.sql',
-                                    {'limit': config_parser.get('gbif_match', 'scientificnames-limit')},
+                                    {'limit': limit,
+                                     'demo': demo,
+                                     'unmatched_only': unmatched_only},
                                     dict_cursor=True)
-    else:
-        # unmatched names only
-        scientificname_cur = execute_sql_from_file(conn, 'get_names_scientificname_unmatched_only.sql',
-                                    {'limit': config_parser.get('gbif_match', 'scientificnames-limit')},
-                                    dict_cursor=True)
-
     total_sn_count = scientificname_cur.rowcount
     print(f"Number of taxa in scientificname table: {total_sn_count}.")
     log = f"Match names (scientificName + authorship) to GBIF Backbone. "
