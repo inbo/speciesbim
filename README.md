@@ -3,6 +3,9 @@ Development of the postgreSQL species database of Brussels Environment
 
 ## Changelog / development journal
 
+- Add functionality of running existing code in a demo mode to showcase the work done up to now on a small but significant subset of taxa
+- Create a table called scientificnameannex and write functionality to populate with taxa in `official_annexes.csv`
+- Add text file, `official_annexes.csv`, in `data/raw` containing all taxa mentioned in official annexes and ordinances
 - Added field `acceptedId` to `taxonomy` table. If a taxon is a synonym in GBIF Backbone, the correspondent accepted 
 taxon is added and its `id` is used as value of `acceptedId`. Exotic status of synonyms is also inherited by the 
 correspondent accepted taxa.
