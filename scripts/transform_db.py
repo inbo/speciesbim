@@ -2,8 +2,9 @@
 # See: https://github.com/inbo/speciesbim/issues/3
 
 # Before running this script, make sure you have a config.ini file in the current directory
-# It should contain DB connection information (set up an external tunnel if necessary)
 # You can start by copying config.ini.example to config.ini and change its content.
+import os
+
 import gbif_match
 import vernacular_names
 import exotic_status
@@ -16,6 +17,9 @@ __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file
 
 LOG_FILE_PATH = "./logs/transform_db.log"
 ANNEX_FILE_PATH = os.path.join(__location__, "../data/raw/official_annexes.csv")
+
+# GBIF datasetKey of checklist: Global Register of Introduced and Invasive Species - Belgium
+GRIIS_DATASET_UUID = "6d9e952f-948c-4483-9807-575348147c7e"
 
 setup_log_file(LOG_FILE_PATH)
 conn = get_database_connection()
@@ -60,6 +64,4 @@ with conn:
               "taxonomy table "
     print(message)
     logging.info(message)
-    # GBIF datasetKey of checklist: Global Register of Introduced and Invasive Species - Belgium
-    griis_be = "6d9e952f-948c-4483-9807-575348147c7e"
-    exotic_status.populate_is_exotic_be_field(conn, config_parser=config, exotic_status_source=griis_be)
+    exotic_status.populate_is_exotic_be_field(conn, config_parser=config, exotic_status_source=GRIIS_DATASET_UUID)

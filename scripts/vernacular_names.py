@@ -5,11 +5,12 @@ from pycountry import languages as pylang
 from helpers import execute_sql_from_jinja_string, get_database_connection, setup_log_file, get_config, \
     paginated_name_usage
 
+
 def _iso639_1_to_2_dict(lang):
     """
     Takes some 2 letter-code languages (['fr', 'nl']).
     Returns a dictionary with the corresponding 3-letter codes ('fra', 'nld') and bibliogaphic synonyms ('fre', 'dut')
-    as keys, the corresponding 2-leter-code languages as values.
+    as keys, the corresponding 2-letter-code languages as values.
     Example:
         {'fra': 'fr',
          'fre': 'fr',
@@ -26,6 +27,7 @@ def _iso639_1_to_2_dict(lang):
                       i in dir(language_info)]
     gbif_languages = dict(gbif_languages)
     return gbif_languages
+
 
 def _get_vernacular_names_gbif(gbif_taxon_id, languages3=None):
     # languages3 is a list of 3-letter language codes (ISO 639-1 Code) (default: no filtering)
