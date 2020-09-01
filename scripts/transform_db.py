@@ -17,6 +17,7 @@ __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file
 
 LOG_FILE_PATH = "./logs/transform_db.log"
 ANNEX_FILE_PATH = os.path.join(__location__, "../data/raw/official_annexes.csv")
+ANNEX_FILE_PATH_DEMO = os.path.join(__location__, "../data/raw/official_annexes_demo.csv")
 
 # GBIF datasetKey of checklist: Global Register of Introduced and Invasive Species - Belgium
 GRIIS_DATASET_UUID = "6d9e952f-948c-4483-9807-575348147c7e"
@@ -24,6 +25,8 @@ GRIIS_DATASET_UUID = "6d9e952f-948c-4483-9807-575348147c7e"
 setup_log_file(LOG_FILE_PATH)
 conn = get_database_connection()
 config = get_config()
+# activate/deactivate demo mode
+demo = config.getboolean('demo_mode', 'demo')
 
 with conn:
     message = "Step 1: Drop our new tables if they already exists (idempotent script)"
@@ -45,13 +48,21 @@ with conn:
     message = "Step 4: populate the scientificnameannex table based on official annexes"
     print(message)
     logging.info(message)
-    populate_scientificname_annex.populate_scientificname_annex(conn, config_parser=config, annex_file=ANNEX_FILE_PATH)
+    if not demo:
+        populate_scientificname_annex.populate_scientificname_annex(conn, config_parser=config,
+                                                                    annex_file=ANNEX_FILE_PATH)
+    else:
+        populate_scientificname_annex.populate_scientificname_annex(conn, config_parser=config,
+                                                                    annex_file=ANNEX_FILE_PATH_DEMO)
 
     message = "Step 5: populate taxonomy table with matches to GBIF Backbone and related backbone tree " +\
               "and update scientificname table"
     print(message)
     logging.info(message)
-    gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)
+    if not demo:
+        gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)
+    else:
+        gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)
 
     message = "Step 6: populate vernacular names from GBIF for each entry in the taxonomy table"
     print(message)
