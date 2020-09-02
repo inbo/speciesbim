@@ -9,6 +9,7 @@ import vernacular_names
 import exotic_status
 import populate_scientificname_annex
 import logging
+import os
 
 from helpers import execute_sql_from_file, get_database_connection, get_config, setup_log_file
 
