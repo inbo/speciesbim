@@ -92,7 +92,41 @@ Truncated result:
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 32 | 216 | Insecta | 5 | 31 | CLASS | Animalia |
 
-# Example 3: Get 2 vernacularnames for a given taxon, priority to names from the Belgian Species List
+# Example 3: get subtaxa of a given taxon
+
+```
+SELECT * FROM subtaxa WHERE "treeTop" = 5;
+WITH RECURSIVE subtaxa AS (
+    SELECT
+           "id",
+           "id" as "treeTop",
+           "scientificName",
+           "parentId"
+    FROM
+        biodiv.taxonomy
+
+    UNION
+        SELECT
+            t."id",
+            s."treeTop",
+            t."scientificName",
+            t."parentId"
+        FROM biodiv.taxonomy t
+        INNER JOIN subtaxa s ON s.id = t."parentId"
+)
+
+SELECT * FROM subtaxa WHERE "treeTop" = 5;
+```
+
+| id | treeTop | scientificName | parentId |
+| :--- | :--- | :--- | :--- |
+| 5 | 5 | Ranidae | 4 |
+| 6 | 5 | Pelophylax Fitzinger, 1843 | 5 |
+| 8 | 5 | Rana ridibunda Pallas, 1771 | 6 |
+| 7 | 5 | Pelophylax ridibundus \(Pallas, 1771\) | 6 |
+
+
+# Example 4: Get 2 vernacularnames for a given taxon, priority to names from the Belgian Species List
 
 ```
 WITH vernacularnames_with_priority AS (
