@@ -59,10 +59,7 @@ with conn:
               "and update scientificname table"
     print(message)
     logging.info(message)
-    if not demo:
-        gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)
-    else:
-        gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)
+    gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)
 
     message = "Step 6: populate vernacular names from GBIF for each entry in the taxonomy table"
     print(message)
