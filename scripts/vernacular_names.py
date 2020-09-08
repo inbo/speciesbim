@@ -49,6 +49,29 @@ def _get_vernacular_names_gbif(gbif_taxon_id, languages3=None):
 
     return names_data
 
+def _insert_or_get_vernacularnamesource(conn, uuid, title):
+    """ Insert or select a dataset based on its datasetKey (UUID)
+
+        If datasetKey already exists in the vernacularnamesource table, select it.
+        Otherwise, insert it in a new row.
+
+        In both cases, returns the row id """
+
+    dataset_template = """WITH ins AS (
+        INSERT INTO vernacularnamesource ("datasetKey", "datasetTitle")
+        VALUES ({{ uuid }}, {{ title }})         -- input value
+        ON CONFLICT ("datasetKey") DO NOTHING
+        RETURNING vernacularnamesource.id
+        )
+    SELECT id FROM ins
+    UNION  ALL
+    SELECT id FROM vernacularnamesource          -- 2nd SELECT never executed if INSERT successful
+    WHERE "datasetKey" = {{ uuid }}  -- input value a 2nd time
+    LIMIT  1;"""
+    cur = execute_sql_from_jinja_string(conn,
+                                        sql_string=dataset_template,
+                                        context={'uuid': uuid, 'title': title})
+    return cur.fetchone()[0]
 
 def populate_vernacular_names(conn, config_parser, empty_only, filter_lang=None):
     # If empty only, only process the taxa currently without vernacular names
