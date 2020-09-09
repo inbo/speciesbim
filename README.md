@@ -3,7 +3,7 @@ Development of the postgreSQL species database of Brussels Environment
 
 ## Changelog / development journal
 
-- Store details (`datasetKey` and `datasetTitle`) about datasets vernacular names come from in a new table called `verncaularnamesource`
+- Store details (`datasetKey` and `datasetTitle`) about the source (dataset) of vernacular names in a new table (`verncaularnamesource`)
 - Add functionality of running existing code in a demo mode to showcase the work done up to now on a small but significant subset of taxa
 - Create a table called scientificnameannex and write functionality to populate with taxa in `official_annexes.csv`
 - Add text file, `official_annexes.csv`, in `data/raw` containing all taxa mentioned in official annexes and ordinances

@@ -45,7 +45,7 @@ CREATE TABLE scientificnameannex (
 CREATE TABLE vernacularnamesource (
     "id" serial PRIMARY KEY,
     "datasetKey" character varying(50) UNIQUE, -- alphanumeric GBIF datasetKey (UUID)
-    "datasetTitle" character varying (511) UNIQUE -- as appears in GBIF
+    "datasetTitle" character varying (1023) UNIQUE -- as appears in GBIF
 );
 
 CREATE TABLE vernacularname (
@@ -53,5 +53,5 @@ CREATE TABLE vernacularname (
     "taxonomyId" integer REFERENCES taxonomy(id) NOT NULL, -- Can be null if no match
     "language" character varying(2) NOT NULL, -- Follows ISO 639-1 standard
     "name" character varying(255) NOT NULL,
-    "source" integer REFERENCES vernacularnamesource(id) -- GBIF datasetKey (UUID)
+    "source" integer REFERENCES vernacularnamesource(id)
 )

@@ -125,32 +125,31 @@ SELECT * FROM subtaxa WHERE "treeTop" = 5;
 | 8 | 5 | Rana ridibunda Pallas, 1771 | 6 |
 | 7 | 5 | Pelophylax ridibundus \(Pallas, 1771\) | 6 |
 
-
+    
 # Example 4: Get 2 vernacularnames for a given taxon, priority to names from the Belgian Species List
 
 ```
-WITH vernacularnames_with_priority AS (
+WITH vernacularnames_sources_with_priority AS (
     SELECT
-           "taxonomyId",
-           "language",
-           "name",
-           "source",
+           "id",
+           "datasetKey",
+           "datasetTitle",
            (CASE
-               WHEN "source" LIKE 'Belgian Species List' THEN TRUE
+               WHEN "datasetTitle" LIKE 'Belgian Species List' THEN TRUE
                ELSE FALSE END
             ) "high_priority_source"
-    FROM biodiv.vernacularname
+        FROM biodiv.vernacularnamesource
     )
 
-
-SELECT * FROM vernacularnames_with_priority
-WHERE "taxonomyId" = 8 -- Marsh frog;
-AND language LIKE 'fr'
+SELECT * FROM biodiv.vernacularname
+LEFT JOIN vernacularnames_sources_with_priority v on v.id = vernacularname.source
+WHERE "taxonomyId" = 8 AND language LIKE 'fr'
 ORDER by high_priority_source DESC -- High priority source first
 LIMIT 2;
 ```
 
-| taxonomyId | language | name | source | high\_priority\_source |
-| :--- | :--- | :--- | :--- | :--- |
-| 8 | fr | grenouille rieuse | Belgian Species List | true |
-| 8 | fr | Grenouille rieuse | EUNIS Biodiversity Database | false |
+| id | taxonomyId | language | name | source | id | datasetKey | datasetTitle | high\_priority\_source |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 39 | 8 | fr | grenouille rieuse | 4 | 4 | 39653f3e-8d6b-4a94-a202-859359c164c5 | Belgian Species List | true |
+| 37 | 8 | fr | Grenouille rieuse | 37 | 37 | 1bd42c2b-b58a-4a01-816b-bec8c8977927 | EUNIS Biodiversity Database | false |
+

@@ -50,6 +50,7 @@ def _get_vernacular_names_gbif(gbif_taxon_id, languages3=None):
 
     return names_data
 
+
 def _insert_or_get_vernacularnamesource(conn, uuid, title):
     """ Insert or select a dataset based on its datasetKey (UUID)
 
@@ -73,6 +74,7 @@ def _insert_or_get_vernacularnamesource(conn, uuid, title):
                                         sql_string=dataset_template,
                                         context={'uuid': uuid, 'title': title})
     return cur.fetchone()[0]
+
 
 def populate_vernacular_names(conn, config_parser, empty_only, filter_lang=None):
     # If empty only, only process the taxa currently without vernacular names
