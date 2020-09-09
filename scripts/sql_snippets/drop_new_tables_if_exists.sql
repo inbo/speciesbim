@@ -1,4 +1,5 @@
 DROP TABLE IF EXISTS vernacularname;
+DROP TABLE IF EXISTS vernacularnamesource;
 DROP TABLE IF EXISTS scientificname;
 DROP TABLE IF EXISTS scientificnameannex;
 DROP TYPE IF EXISTS gbifmatchtype;

@@ -1,6 +1,7 @@
 import logging
 import time
 from pycountry import languages as pylang
+from pygbif import registry
 
 from helpers import execute_sql_from_jinja_string, get_database_connection, setup_log_file, get_config, \
     paginated_name_usage
@@ -50,6 +51,31 @@ def _get_vernacular_names_gbif(gbif_taxon_id, languages3=None):
     return names_data
 
 
+def _insert_or_get_vernacularnamesource(conn, uuid, title):
+    """ Insert or select a dataset based on its datasetKey (UUID)
+
+        If datasetKey already exists in the vernacularnamesource table, select it.
+        Otherwise, insert it in a new row.
+
+        In both cases, returns the row id """
+
+    dataset_template = """WITH ins AS (
+        INSERT INTO vernacularnamesource ("datasetKey", "datasetTitle")
+        VALUES ({{ uuid }}, {{ title }})         -- input value
+        ON CONFLICT ("datasetKey") DO NOTHING
+        RETURNING vernacularnamesource.id
+        )
+    SELECT id FROM ins
+    UNION  ALL
+    SELECT id FROM vernacularnamesource          -- 2nd SELECT never executed if INSERT successful
+    WHERE "datasetKey" = {{ uuid }}  -- input value a 2nd time
+    LIMIT  1;"""
+    cur = execute_sql_from_jinja_string(conn,
+                                        sql_string=dataset_template,
+                                        context={'uuid': uuid, 'title': title})
+    return cur.fetchone()[0]
+
+
 def populate_vernacular_names(conn, config_parser, empty_only, filter_lang=None):
     # If empty only, only process the taxa currently without vernacular names
     # Otherwise, process all entries in the taxonomy table
@@ -92,13 +118,23 @@ def populate_vernacular_names(conn, config_parser, empty_only, filter_lang=None)
         total_taxa_counter += 1
 
         vns = _get_vernacular_names_gbif(gbif_taxon_id, languages3=languages3)
+        datasets = {}
         for vernacular_name in vns:
             name = vernacular_name.get('vernacularName')
             lang_code = filter_lang_dict[vernacular_name.get('language')]
-            source = vernacular_name.get('source')
-            if source is None:
+            dataset_title = vernacular_name.get('source')
+            if dataset_title is None:
                 print(f"Warning: vernacular name {name} for taxon with ID: {taxonomy_id} without source. Contact GBIF: https://github.com/gbif/gbif-api/issues/56")
-            msg = f"Now saving '{name}'({lang_code}) for taxon with ID: {taxonomy_id} (source: {source})"
+                datasets[dataset_title] = None
+            else:
+                if dataset_title not in datasets.keys():
+                    dataset = registry.dataset_suggest(dataset_title)
+                    datasetKey = dataset[0]['key']
+                    datasets[dataset_title] = datasetKey
+            datasetKey = datasets[dataset_title]
+            dataset_id = _insert_or_get_vernacularnamesource(conn= conn, uuid=datasetKey, title=dataset_title)
+
+            msg = f"Now saving '{name}'({lang_code}) for taxon with ID: {taxonomy_id} (source: {dataset_title})"
             print(msg)
             logging.info(msg)
 
@@ -106,7 +142,7 @@ def populate_vernacular_names(conn, config_parser, empty_only, filter_lang=None)
             execute_sql_from_jinja_string(conn, sql_string=insert_template, context={'taxonomy_id': taxonomy_id,
                                                                                      'lang_code': lang_code,
                                                                                      'name': name,
-                                                                                     'source': source})
+                                                                                     'source': dataset_id})
             total_vernacularnames_counter += 1
 
     end_time = time.time()
@@ -122,4 +158,4 @@ if __name__ == "__main__":
     setup_log_file("./logs/vernacular_names.log")
     # list of 2-letters language codes (ISO 639-1)
     languages = ['fr', 'nl', 'en']
-    populate_vernacular_names(connection, config_parser=config, empty_only=False, filter_lang=languages)
+    populate_vernacular_names(connection, config_parser=config, empty_only=True, filter_lang=languages)
