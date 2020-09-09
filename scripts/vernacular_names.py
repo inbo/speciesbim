@@ -72,8 +72,9 @@ def _insert_or_get_vernacularnamesource(conn, uuid, title):
     LIMIT  1;"""
     cur = execute_sql_from_jinja_string(conn,
                                         sql_string=dataset_template,
-                                        context={'uuid': uuid, 'title': title})
-    return cur.fetchone()[0]
+                                        context={'uuid': uuid, 'title': title},
+                                        dict_cursor=True)
+    return cur.fetchone()['id']
 
 
 def populate_vernacular_names(conn, config_parser, empty_only, filter_lang=None):
