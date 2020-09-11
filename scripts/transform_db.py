@@ -8,7 +8,7 @@ import os
 import gbif_match
 import vernacular_names
 import exotic_status
-import populate_scientificname_annex
+import populate_annex_scientificname
 import logging
 
 from helpers import execute_sql_from_file, get_database_connection, get_config, setup_log_file
@@ -45,14 +45,14 @@ with conn:
     execute_sql_from_file(conn, 'populate_scientificname.sql',
                           {'limit': config.get('transform_db', 'scientificnames-limit')})
 
-    message = "Step 4: populate the scientificnameannex table based on official annexes"
+    message = "Step 4: populate annexscientificname table based on official annexes and match to scientificname table"
     print(message)
     logging.info(message)
     if not demo:
-        populate_scientificname_annex.populate_scientificname_annex(conn, config_parser=config,
+        populate_annex_scientificname.populate_annex_scientificname(conn, config_parser=config,
                                                                     annex_file=ANNEX_FILE_PATH)
     else:
-        populate_scientificname_annex.populate_scientificname_annex(conn, config_parser=config,
+        populate_annex_scientificname.populate_annex_scientificname(conn, config_parser=config,
                                                                     annex_file=ANNEX_FILE_PATH_DEMO)
 
     message = "Step 5: populate taxonomy table with matches to GBIF Backbone and related backbone tree " +\

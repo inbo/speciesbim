@@ -29,7 +29,7 @@ CREATE TABLE scientificname (
     "matchType" gbifmatchtype
 );
 
-CREATE TABLE scientificnameannex (
+CREATE TABLE annexscientificname (
     "id" serial PRIMARY KEY,
     "taxonomyId" integer REFERENCES taxonomy(id), -- Can be null if no match
     "scientificNameOriginal" character varying(1023) NOT NULL, -- as appear in the original annexes
