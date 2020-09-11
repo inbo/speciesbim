@@ -31,15 +31,11 @@ CREATE TABLE scientificname (
 
 CREATE TABLE annexscientificname (
     "id" serial PRIMARY KEY,
-    "taxonomyId" integer REFERENCES taxonomy(id), -- Can be null if no match
+    "scientificnameId" integer REFERENCES scientificname(id), -- Can be null if no match
     "scientificNameOriginal" character varying(1023) NOT NULL, -- as appear in the original annexes
     "scientificName" character varying(255), -- corrected names (typos, ...)
     "remarks" character varying (1023), -- remarks about correction
-    "annexCode" character varying(255) REFERENCES annex(annexcode),
-    -- !! the following field are attributes of the match process !!
-    "lastMatched" timestamp with time zone, -- when was a GBIF match last attempted?
-    "matchConfidence" smallint,
-    "matchType" gbifmatchtype
+    "annexCode" character varying(255) REFERENCES annex(annexcode)
 );
 
 CREATE TABLE vernacularnamesource (
