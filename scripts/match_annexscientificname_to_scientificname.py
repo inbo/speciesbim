@@ -79,8 +79,10 @@ def match_annexscientificname_to_scientificname(conn, config_parser, unmatched_o
     n_names_added_from_annex = n_rows_scientificname - total_sn_count
     # Logging and statistics
     end = time.time()
-    print(f"Total number of names from annexes inserted in scientificname table: " \
-            f" { n_names_added_from_annex }/ { total_sn_annex_count }")
+    summary_match = f"Number of names in annexscientificname table inserted in scientificname table: " \
+            f" { n_names_added_from_annex }/ { total_sn_annex_count }"
+    print(summary_match)
+    logging.info(summary_match)
     elapsed_time = f"Matching of annexscientificname to scientificname table performed in {round(end - start)}s."
     print(elapsed_time)
     logging.info(elapsed_time)
@@ -97,17 +99,6 @@ def match_annexscientificname_to_scientificname(conn, config_parser, unmatched_o
 #     scientificname_values = scientific_cur.fetchall()
 #     cols_scientificname = list(map(lambda x: x[0], scientific_cur.scientificname))
 #
-#     assert len(scientificname_values) <= 1, f"Multiple scientific names with scientificname = { name_annex } in scientificname."
-#     if len(scientificname_values) == 1:
-#         name = dict(zip(cols_scientificname, scientificname_values[0]))
-#     else:
-#         name = dict.fromkeys(cols_scientificname)
-#     return name
-
-# match to scientificname and insert if not present
-# scientificname_id = _insert_or_get_scientificname(conn, value['scientificName'])
-
-
 if __name__ == "__main__":
     connection = get_database_connection()
     config = get_config()
