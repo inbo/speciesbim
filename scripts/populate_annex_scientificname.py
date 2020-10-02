@@ -28,51 +28,6 @@ def _get_annex(path):
     return annex_scientificnames
 
 
-# def _match_name_annex_to_scientificname(conn, name_annex):
-#     """ Match a scientific name in annexscientificname table to scientificname
-#
-#     Names not found in table scientificname are added
-#     """
-#
-#     template = """SELECT * FROM scientificname WHERE "scientificName" = {{ name_annex }} """
-#     scientific_cur = execute_sql_from_jinja_string(conn,sql_string=template, context={'name_annex': name_annex})
-#     scientificname_values = scientific_cur.fetchall()
-#     cols_scientificname = list(map(lambda x: x[0], scientific_cur.scientificname))
-#
-#     assert len(scientificname_values) <= 1, f"Multiple scientific names with scientificname = { name_annex } in scientificname."
-#     if len(scientificname_values) == 1:
-#         name = dict(zip(cols_scientificname, scientificname_values[0]))
-#     else:
-#         name = dict.fromkeys(cols_scientificname)
-#     return name
-
-
-def _insert_or_get_scientificname(conn, scientific_name):
-    """ Insert or select a taxon in scientificname table based on its scientific name
-
-        If the scientific name already exists in the scientificname table, select it.
-        Otherwise, insert it in a new row.
-
-        In both cases, returns the row id """
-
-    sc_name_template = """WITH ins AS (
-        INSERT INTO scientificname ("scientificName")
-        VALUES ({{ scientific_name }})         -- input value
-        ON CONFLICT ("scientificName") DO NOTHING
-        RETURNING scientificname.id
-        )
-    SELECT id FROM ins
-    UNION  ALL
-    SELECT id FROM scientificname          -- 2nd SELECT never executed if INSERT successful
-    WHERE "scientificName" = {{ scientific_name }}  -- input value a 2nd time
-    LIMIT  1;"""
-    cur = execute_sql_from_jinja_string(conn,
-                                        sql_string=sc_name_template,
-                                        context={'scientific_name': scientific_name},
-                                        dict_cursor=True)
-    return cur.fetchone()['id']
-
-
 def populate_annex_scientificname(conn, config_parser, annex_file):
     """ Populate the table annexscientificname
 
@@ -85,7 +40,7 @@ def populate_annex_scientificname(conn, config_parser, annex_file):
                                     str(len(annex_names))
     print(message_n_names_in_annex_file)
     logging.info(message_n_names_in_annex_file)
-    n_taxa_max = config_parser.get('scientificname_annex', 'taxa-limit')
+    n_taxa_max = config_parser.get('annex_scientificname', 'taxa-limit')
     if len(n_taxa_max) > 0:
         n_taxa_max = int(n_taxa_max)
     else:
@@ -113,9 +68,6 @@ def populate_annex_scientificname(conn, config_parser, annex_file):
                                f" {round(elapsed_time, 2)}s." + \
                                f" Expected time to go: {round(expected_time, 2)}s."
                 print(info_message, end="", flush=True)
-
-            # match to scientificname and insert if not present
-            scientificname_id = _insert_or_get_scientificname(conn, value['scientificName'])
 
         else:
             break
