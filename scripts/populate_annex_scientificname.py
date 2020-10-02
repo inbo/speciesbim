@@ -73,7 +73,7 @@ def populate_annex_scientificname(conn, config_parser, annex_file):
             break
     # Logging and statistics
     end = time.time()
-    n_taxa_inserted = f"Total number of taxa inserted in annexscientificname: {counter_insertions}"
+    n_taxa_inserted = f"\nTotal number of taxa inserted in annexscientificname: {counter_insertions}"
     print(n_taxa_inserted)
     logging.info(n_taxa_inserted)
     elapsed_time = f"Table annexscientificname populated in {round(end - start)}s."
