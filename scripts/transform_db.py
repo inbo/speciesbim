@@ -6,7 +6,7 @@
 import os
 import logging
 
-# import match_annexscientificname_to_scientificname
+import match_annexscientificname_to_scientificname
 import gbif_match
 import vernacular_names
 import exotic_status
