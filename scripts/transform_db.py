@@ -60,9 +60,10 @@ with conn:
     # message = "Step 5: match annexscientificname table to scientificname table and add taxa if not present"
     # print(message)
     # logging.info(message)
-    # match_annexscientificname_to_scientificname(conn,
     #                                              config_parser=config)
     #
+    match_annexscientificname_to_scientificname.match_annexscientificname_to_scientificname(conn,
+                                                                                            config_parser=config)
     # message = "Step 6: populate taxonomy table with matches to GBIF Backbone and related backbone tree " +\
     #           "and update scientificname table"
     # print(message)
