@@ -53,8 +53,10 @@ def match_annexscientificname_to_scientificname(conn, config_parser, unmatched_o
                                                      'limit': limit},
                                                     dict_cursor=True)
     total_sn_annex_count = annexscientificname_cur.rowcount
-    n_taxa_message = f"Number of taxa with a not empty scientificName in annexscientificname table: {total_sn_annex_count}"
+    n_taxa_message = "Number of taxa with a not empty scientificName in annexscientificname table " \
+        f"(unmatched_only: { unmatched_only }): {total_sn_annex_count}"
     print(n_taxa_message)
+    logging.info(n_taxa_message)
     log = f"Match names in annexscientificname to names in scientificname"
     print(log)
     logging.info(log)
