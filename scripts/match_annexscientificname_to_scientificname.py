@@ -88,17 +88,6 @@ def match_annexscientificname_to_scientificname(conn, config_parser, unmatched_o
     logging.info(elapsed_time)
 
 
-# def _match_name_annex_to_scientificname(conn, name_annex):
-#     """ Match a scientific name in annexscientificname table to scientificname
-#
-#     Names not found in table scientificname are added
-#     """
-#
-#     template = """SELECT * FROM scientificname WHERE "scientificName" = {{ name_annex }} """
-#     scientific_cur = execute_sql_from_jinja_string(conn,sql_string=template, context={'name_annex': name_annex})
-#     scientificname_values = scientific_cur.fetchall()
-#     cols_scientificname = list(map(lambda x: x[0], scientific_cur.scientificname))
-#
 if __name__ == "__main__":
     connection = get_database_connection()
     config = get_config()
