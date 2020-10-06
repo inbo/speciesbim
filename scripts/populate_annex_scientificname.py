@@ -24,6 +24,7 @@ def _get_annex(path):
             annex_scientificnames[id] = {'id': id,
                                          'scientificNameOriginal': scientific_name_original,
                                          'scientificName': scientific_name_corrected,
+                                         'authorship': authorship,
                                          'annexCode': annex_id,
                                          'remarks': remarks}
     return annex_scientificnames
