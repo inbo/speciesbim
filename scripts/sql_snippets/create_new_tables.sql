@@ -26,7 +26,8 @@ CREATE TABLE scientificname (
     -- !! the following field are attributes of the match process !!
     "lastMatched" timestamp with time zone, -- when was a GBIF match last attempted?
     "matchConfidence" smallint,
-    "matchType" gbifmatchtype
+    "matchType" gbifmatchtype,
+    CONSTRAINT scn_auth UNIQUE("scientificName", "authorship")
 );
 
 CREATE TABLE annexscientificname (
