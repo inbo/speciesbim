@@ -18,8 +18,9 @@ def _get_annex(path):
             id = i + 1
             scientific_name_original = row[1]
             scientific_name_corrected = row[2]
+            authorship = row[3]
             annex_id = row[0]
-            remarks = row[4]
+            remarks = row[5]
             annex_scientificnames[id] = {'id': id,
                                          'scientificNameOriginal': scientific_name_original,
                                          'scientificName': scientific_name_corrected,
