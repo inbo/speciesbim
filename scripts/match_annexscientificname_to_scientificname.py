@@ -11,28 +11,29 @@ def _update_scientificname_id(conn, scientificname_id, row_id):
                                   {'scientificname_id': scientificname_id,
                                    'id': row_id})
 
-def _insert_or_get_scientificname(conn, scientific_name):
-    """ Insert or select a name in scientificname table based on its scientific name
+def _insert_or_get_scientificname(conn, scientific_name, authorship):
+    """ Insert or select a name in scientificname table based on its scientific name and authorship
 
-        If the scientific name already exists in the scientificname table, select it.
+        If the scientific name - authorship combination already exists in the scientificname table, select it.
         Otherwise, insert it in a new row.
 
         In both cases, returns the row id """
 
     sc_name_template = """WITH ins AS (
-        INSERT INTO scientificname ("scientificName")
-        VALUES ({{ scientific_name }})         -- input value
-        ON CONFLICT ("scientificName") DO NOTHING
+        INSERT INTO scientificname ("scientificName", "authorship")
+        VALUES ({{ scientific_name }}, {{ authorship}})         -- input value
+        ON CONFLICT ("scientificName", "authorship") DO NOTHING
         RETURNING scientificname.id
         )
     SELECT id FROM ins
     UNION  ALL
     SELECT "id" FROM scientificname          -- 2nd SELECT never executed if INSERT successful
-    WHERE "scientificName" = {{ scientific_name }}  -- input value a 2nd time
+    WHERE "scientificName" = {{ scientific_name }} AND "authorship" = {{ authorship }} -- input value a 2nd time
     LIMIT  1;"""
     cur = execute_sql_from_jinja_string(conn,
                                         sql_string=sc_name_template,
-                                        context={'scientific_name': scientific_name},
+                                        context={'scientific_name': scientific_name,
+                                                 'authorship': authorship},
                                         dict_cursor=True)
     return cur.fetchone()['id']
 
@@ -68,8 +69,13 @@ def match_annexscientificname_to_scientificname(conn, config_parser, unmatched_o
         row_id = row['id']
         # get name to check
         name = row['scientificName']
+        author = row['authorship']
+        if (author == ''):
+            author = None
         print(f'Try matching the "{name}" name and add to scientificname if not found')
-        scientificname_id = _insert_or_get_scientificname(conn=conn, scientific_name=name)
+        scientificname_id = _insert_or_get_scientificname(conn=conn,
+                                                          scientific_name=name,
+                                                          authorship=author)
         print(f"Update scientificnameId ({ scientificname_id }) for {name} (id: {row_id}).")
         _update_scientificname_id(conn, scientificname_id=scientificname_id, row_id=row_id)
 
