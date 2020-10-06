@@ -62,21 +62,22 @@ with conn:
     logging.info(message)
     match_annexscientificname_to_scientificname.match_annexscientificname_to_scientificname(conn,
                                                                                             config_parser=config)
-    # message = "Step 6: populate taxonomy table with matches to GBIF Backbone and related backbone tree " +\
-    #           "and update scientificname table"
-    # print(message)
-    # logging.info(message)
-    # gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)
-    #
-    # message = "Step 7: populate vernacular names from GBIF for each entry in the taxonomy table"
-    # print(message)
-    # logging.info(message)
-    # # list of 2-letters language codes (ISO 639-1)
-    # languages = ['fr', 'nl', 'en']
-    # vernacular_names.populate_vernacular_names(conn, config_parser=config, empty_only=False, filter_lang=languages)
-    #
-    # message = "Step 8: populate field exotic_be (values: True of False) from GRIIS checklist for each entry in " \
-    #           "taxonomy table "
-    # print(message)
-    # logging.info(message)
-    # exotic_status.populate_is_exotic_be_field(conn, config_parser=config, exotic_status_source=GRIIS_DATASET_UUID)
+
+    message = "Step 6: populate taxonomy table with matches to GBIF Backbone and related backbone tree " +\
+              "and update scientificname table"
+    print(message)
+    logging.info(message)
+    gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)
+
+    message = "Step 7: populate vernacular names from GBIF for each entry in the taxonomy table"
+    print(message)
+    logging.info(message)
+    # list of 2-letters language codes (ISO 639-1)
+    languages = ['fr', 'nl', 'en']
+    vernacular_names.populate_vernacular_names(conn, config_parser=config, empty_only=False, filter_lang=languages)
+
+    message = "Step 8: populate field exotic_be (values: True of False) from GRIIS checklist for each entry in " \
+              "taxonomy table "
+    print(message)
+    logging.info(message)
+    exotic_status.populate_is_exotic_be_field(conn, config_parser=config, exotic_status_source=GRIIS_DATASET_UUID)
