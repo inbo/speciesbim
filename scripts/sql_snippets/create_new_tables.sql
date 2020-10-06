@@ -35,6 +35,7 @@ CREATE TABLE annexscientificname (
     "scientificnameId" integer REFERENCES scientificname(id), -- Can be null if no match
     "scientificNameOriginal" character varying(1023) NOT NULL, -- as appear in the original annexes
     "scientificName" character varying(255), -- corrected names (typos, ...)
+    "authorship" character varying(255), -- corrected names (typos, ...)
     "remarks" character varying (1023), -- remarks about correction
     "annexCode" character varying(255) REFERENCES annex(annexcode)
 );
