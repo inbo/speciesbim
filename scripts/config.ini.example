@@ -24,7 +24,10 @@ scientificnames-limit = 100
 # taxa-limit =
 taxa-limit = 100
 
-[scientificname_annex]
+[annex_scientificname]
 # taxa-limit: number | empty for all
 # taxa-limit = 500
 taxa-limit =
+
+[annex_scientificname_to_scientificname]'
+scientificnames-limit =
