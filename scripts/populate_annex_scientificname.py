@@ -21,10 +21,14 @@ def _get_annex(path):
             authorship = row[3]
             annex_id = row[0]
             remarks = row[5]
+            is_scientific_name = True
+            if (scientific_name_corrected == ''):
+                is_scientific_name = False
             annex_scientificnames[id] = {'id': id,
                                          'scientificNameInAnnex': scientific_name_original,
                                          'scientificName': scientific_name_corrected,
                                          'authorship': authorship,
+                                         'isScientificName': is_scientific_name,
                                          'annexCode': annex_id,
                                          'remarks': remarks}
     return annex_scientificnames
@@ -81,7 +85,6 @@ def populate_annex_scientificname(conn, config_parser, annex_file):
     elapsed_time = f"Table annexscientificname populated in {round(end - start)}s."
     print(elapsed_time)
     logging.info(elapsed_time)
-
 
 if __name__ == "__main__":
     connection = get_database_connection()

@@ -40,6 +40,7 @@ CREATE TABLE annexscientificname (
     "scientificName" character varying(255), -- corrected names (typos, ...)
     "authorship" character varying(255), -- corrected names (typos, ...)
     "remarks" character varying (1023), -- remarks about correction
+    "isScientificName" boolean, -- as it can be an expresssion, not just a scientific name,
     "annexCode" character varying(255) REFERENCES annex(annexcode)
 );
 
