@@ -2,14 +2,6 @@ from helpers import get_database_connection, get_config, setup_log_file, execute
 import time
 import logging
 
-def _update_scientificname_id(conn, scientificname_id, row_id):
-    """ Add scientificnameId in annexscientificname if the name is found in scientificname table"""
-    template = """ UPDATE annexscientificname SET "scientificnameId" = {{ scientificname_id }} """\
-               """ WHERE "id" = {{ id }} """
-    execute_sql_from_jinja_string(conn,
-                                  template,
-                                  {'scientificname_id': scientificname_id,
-                                   'id': row_id})
 
 def _insert_or_get_scientificname(conn, scientific_name, authorship):
     """ Insert or select a name in scientificname table based on its scientific name and authorship
@@ -40,6 +32,15 @@ def _insert_or_get_scientificname(conn, scientific_name, authorship):
                                                  'authorship': authorship},
                                         dict_cursor=True)
     return cur.fetchone()['id']
+
+def _update_scientificname_id(conn, scientificname_id, row_id):
+    """ Add scientificNameId in annexscientificname if the name is found in scientificname table"""
+    template = """ UPDATE annexscientificname SET "scientificNameId" = {{ scientificname_id }} """\
+               """ WHERE "id" = {{ id }} """
+    execute_sql_from_jinja_string(conn,
+                                  template,
+                                  {'scientificname_id': scientificname_id,
+                                   'id': row_id})
 
 def match_annexscientificname_to_scientificname(conn, config_parser, unmatched_only=True):
     """ Match names in annexscientificname table to names in scientificname table
