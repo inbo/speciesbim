@@ -22,13 +22,17 @@ def _insert_or_get_scientificname(conn, scientific_name, authorship):
     sc_name_template = """WITH ins AS (
         INSERT INTO scientificname ("scientificName", "authorship")
         VALUES ({{ scientific_name }}, {{ authorship}})         -- input value
-        ON CONFLICT ("scientificName", "authorship") DO NOTHING
+        ON CONFLICT DO NOTHING
         RETURNING scientificname.id
         )
     SELECT id FROM ins
     UNION  ALL
     SELECT "id" FROM scientificname          -- 2nd SELECT never executed if INSERT successful
-    WHERE "scientificName" = {{ scientific_name }} AND "authorship" = {{ authorship }} -- input value a 2nd time
+    {% if authorship is defined %}
+        WHERE "scientificName" = {{ scientific_name }} AND "authorship" is NULL -- input value a 2nd time
+    {% else %}
+        WHERE "scientificName" = {{ scientific_name }} AND "authorship" = {{ authorship }} -- input value a 2nd time
+    {% endif %}
     LIMIT  1;"""
     cur = execute_sql_from_jinja_string(conn,
                                         sql_string=sc_name_template,
