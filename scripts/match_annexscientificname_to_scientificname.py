@@ -98,7 +98,7 @@ def match_annexscientificname_to_scientificname(conn, config_parser, unmatched_o
         scientificname_id = _insert_or_get_scientificname(conn=conn,
                                                           scientific_name=name,
                                                           authorship=author)
-        print(f"Update scientificnameId ({ scientificname_id }) for {name} (id: {row_id}).")
+        print(f"Update scientificNameId ({ scientificname_id }) for {name} (id: {row_id}).")
         _update_scientificname_id(conn, scientificname_id=scientificname_id, row_id=row_id)
 
     # Get number of names in scientificname table
