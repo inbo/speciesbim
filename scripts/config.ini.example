@@ -9,6 +9,9 @@ schema = biodiv
 [demo_mode]
 demo = True
 
+[deduplicate_taxon]
+config-filename = deduplicate_taxon_config.json
+
 [transform_db]
 # scientificnames-limit: number | empty for all
 # scientificnames-limit =
