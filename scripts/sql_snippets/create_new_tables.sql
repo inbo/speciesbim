@@ -35,8 +35,8 @@ WHERE "authorship" IS NULL;
 
 CREATE TABLE annexscientificname (
     "id" serial PRIMARY KEY,
-    "scientificnameId" integer REFERENCES scientificname(id), -- Can be null if no match
-    "scientificNameOriginal" character varying(1023) NOT NULL, -- as appear in the original annexes
+    "scientificNameId" integer REFERENCES scientificname(id), -- Can be null if no match
+    "scientificNameInAnnex" character varying(1023) NOT NULL, -- as appear in the original annexes
     "scientificName" character varying(255), -- corrected names (typos, ...)
     "authorship" character varying(255), -- corrected names (typos, ...)
     "remarks" character varying (1023), -- remarks about correction
