@@ -1,7 +1,7 @@
 SELECT * FROM annexscientificname
 WHERE "scientificName" != ''
 {% if unmatched_only %}
-     AND "scientificnameId" is NULL
+     AND "scientificNameId" is NULL
 {% endif %}
 {% if limit %}
 LIMIT {{ limit }}
