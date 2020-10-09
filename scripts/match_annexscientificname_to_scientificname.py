@@ -42,6 +42,23 @@ def _update_scientificname_id(conn, scientificname_id, row_id):
                                   {'scientificname_id': scientificname_id,
                                    'id': row_id})
 
+def _remove_aux_columns(conn):
+    """ Remove 2 columns with corrected scientific name and authorship as the information contained in them has been
+    copied to scientificname.
+    """
+
+    # control that all scientific names in annexes have a scientificNameId
+    template = """SELECT  COUNT(*) FROM annexscientificname """\
+               """WHERE "isScientificName" is True AND "scientificNameId" is null"""
+    check_cur = execute_sql_from_jinja_string(conn, template, context= {})
+    n_anomalies = check_cur.fetchall()
+    assert n_anomalies[0][0] == 0, f"{n_anomalies} scientific name(s) in annexscientificname table without scientificNameId"
+    print("All scientific names in annex (not expressions) are linked to valid scientific "\
+          "names in scientificname table.")
+    drop_cols_template = """ ALTER TABLE annexscientificname """ + \
+                         """ DROP COLUMN "scientificName", DROP COLUMN "authorship" """
+    execute_sql_from_jinja_string(conn, drop_cols_template)
+
 def match_annexscientificname_to_scientificname(conn, config_parser, unmatched_only=True):
     """ Match names in annexscientificname table to names in scientificname table
     Names not found in table scientificname are added """
@@ -99,7 +116,8 @@ def match_annexscientificname_to_scientificname(conn, config_parser, unmatched_o
     elapsed_time = f"Matching of annexscientificname to scientificname table performed in {round(end - start)}s."
     print(elapsed_time)
     logging.info(elapsed_time)
-
+    # remove auxiliary columns containing the corrected versions of scientific names and authorship
+    _remove_aux_columns(conn=conn)
 
 if __name__ == "__main__":
     connection = get_database_connection()
