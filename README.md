@@ -3,6 +3,8 @@ Development of the postgreSQL species database of Brussels Environment
 
 ## Changelog / development journal
 
+- There's now a deduplicate_taxon script (also called from transform_db) to remove duplicates in taxon before importing 
+in the new table structure. This is necessary because of newly added constraints.
 - Store details (`datasetKey` and `datasetTitle`) about the source (dataset) of vernacular names in a new table (`verncaularnamesource`)
 - Add functionality of running existing code in a demo mode to showcase the work done up to now on a small but significant subset of taxa
 - Create a table called scientificnameannex and write functionality to populate with taxa in `official_annexes.csv`
