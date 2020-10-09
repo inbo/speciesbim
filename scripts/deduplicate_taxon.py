@@ -22,6 +22,7 @@
 #
 # key: old taxon_id (to be deleted)
 # value: new taxon_id (to replace the other one)
+import json
 import os
 
 from helpers import get_database_connection, execute_sql_from_jinja_string, get_config
@@ -30,8 +31,6 @@ __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file
 
 
 def deduplicate_taxon(conn, config_parser):
-    import json
-
     with open(os.path.join(__location__, config_parser.get('deduplicate_taxon', 'config-filename')), 'r') as fp:
         taxon_to_replace = json.load(fp)
 
