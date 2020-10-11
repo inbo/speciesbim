@@ -21,9 +21,9 @@ def _insert_or_get_scientificname(conn, scientific_name, authorship):
     UNION  ALL
     SELECT "id" FROM scientificname          -- 2nd SELECT never executed if INSERT successful
     {% if authorship is defined %}
-        WHERE "scientificName" = {{ scientific_name }} AND "authorship" is NULL -- input value a 2nd time
-    {% else %}
         WHERE "scientificName" = {{ scientific_name }} AND "authorship" = {{ authorship }} -- input value a 2nd time
+    {% else %}
+        WHERE "scientificName" = {{ scientific_name }} AND "authorship" is NULL -- input value a 2nd time
     {% endif %}
     LIMIT  1;"""
     cur = execute_sql_from_jinja_string(conn,
@@ -94,7 +94,7 @@ def match_annexscientificname_to_scientificname(conn, config_parser, unmatched_o
         author = row['authorship']
         if (author == ''):
             author = None
-        print(f'Try matching the "{name}" name and add to scientificname if not found')
+        print(f'Try matching {name} {author} and add to scientificname table if not found')
         scientificname_id = _insert_or_get_scientificname(conn=conn,
                                                           scientific_name=name,
                                                           authorship=author)
