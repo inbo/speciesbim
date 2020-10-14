@@ -2,14 +2,6 @@ from helpers import get_database_connection, get_config, setup_log_file, execute
 import time
 import logging
 
-def _update_scientificname_id(conn, scientificname_id, row_id):
-    """ Add scientificnameId in annexscientificname if the name is found in scientificname table"""
-    template = """ UPDATE annexscientificname SET "scientificnameId" = {{ scientificname_id }} """\
-               """ WHERE "id" = {{ id }} """
-    execute_sql_from_jinja_string(conn,
-                                  template,
-                                  {'scientificname_id': scientificname_id,
-                                   'id': row_id})
 
 def _insert_or_get_scientificname(conn, scientific_name, authorship):
     """ Insert or select a name in scientificname table based on its scientific name and authorship
@@ -22,13 +14,17 @@ def _insert_or_get_scientificname(conn, scientific_name, authorship):
     sc_name_template = """WITH ins AS (
         INSERT INTO scientificname ("scientificName", "authorship")
         VALUES ({{ scientific_name }}, {{ authorship}})         -- input value
-        ON CONFLICT ("scientificName", "authorship") DO NOTHING
+        ON CONFLICT DO NOTHING
         RETURNING scientificname.id
         )
     SELECT id FROM ins
     UNION  ALL
     SELECT "id" FROM scientificname          -- 2nd SELECT never executed if INSERT successful
-    WHERE "scientificName" = {{ scientific_name }} AND "authorship" = {{ authorship }} -- input value a 2nd time
+    {% if authorship is defined %}
+        WHERE "scientificName" = {{ scientific_name }} AND "authorship" = {{ authorship }} -- input value a 2nd time
+    {% else %}
+        WHERE "scientificName" = {{ scientific_name }} AND "authorship" is NULL -- input value a 2nd time
+    {% endif %}
     LIMIT  1;"""
     cur = execute_sql_from_jinja_string(conn,
                                         sql_string=sc_name_template,
@@ -36,6 +32,32 @@ def _insert_or_get_scientificname(conn, scientific_name, authorship):
                                                  'authorship': authorship},
                                         dict_cursor=True)
     return cur.fetchone()['id']
+
+def _update_scientificname_id(conn, scientificname_id, row_id):
+    """ Add scientificNameId in annexscientificname if the name is found in scientificname table"""
+    template = """ UPDATE annexscientificname SET "scientificNameId" = {{ scientificname_id }} """\
+               """ WHERE "id" = {{ id }} """
+    execute_sql_from_jinja_string(conn,
+                                  template,
+                                  {'scientificname_id': scientificname_id,
+                                   'id': row_id})
+
+def _remove_aux_columns(conn):
+    """ Remove 2 columns with corrected scientific name and authorship as the information contained in them has been
+    copied to scientificname.
+    """
+
+    # control that all scientific names in annexes have a scientificNameId
+    template = """SELECT  COUNT(*) FROM annexscientificname """\
+               """WHERE "isScientificName" is True AND "scientificNameId" is null"""
+    check_cur = execute_sql_from_jinja_string(conn, template, context= {})
+    n_anomalies = check_cur.fetchall()
+    assert n_anomalies[0][0] == 0, f"{n_anomalies} scientific name(s) in annexscientificname table without scientificNameId"
+    print("All scientific names in annex (not expressions) are linked to valid scientific "\
+          "names in scientificname table.")
+    drop_cols_template = """ ALTER TABLE annexscientificname """ + \
+                         """ DROP COLUMN "scientificName", DROP COLUMN "authorship" """
+    execute_sql_from_jinja_string(conn, drop_cols_template)
 
 def match_annexscientificname_to_scientificname(conn, config_parser, unmatched_only=True):
     """ Match names in annexscientificname table to names in scientificname table
@@ -72,11 +94,11 @@ def match_annexscientificname_to_scientificname(conn, config_parser, unmatched_o
         author = row['authorship']
         if (author == ''):
             author = None
-        print(f'Try matching the "{name}" name and add to scientificname if not found')
+        print(f'Try matching {name} {author} and add to scientificname table if not found')
         scientificname_id = _insert_or_get_scientificname(conn=conn,
                                                           scientific_name=name,
                                                           authorship=author)
-        print(f"Update scientificnameId ({ scientificname_id }) for {name} (id: {row_id}).")
+        print(f"Update scientificNameId ({ scientificname_id }) for {name} (id: {row_id}).")
         _update_scientificname_id(conn, scientificname_id=scientificname_id, row_id=row_id)
 
     # Get number of names in scientificname table
@@ -94,7 +116,8 @@ def match_annexscientificname_to_scientificname(conn, config_parser, unmatched_o
     elapsed_time = f"Matching of annexscientificname to scientificname table performed in {round(end - start)}s."
     print(elapsed_time)
     logging.info(elapsed_time)
-
+    # remove auxiliary columns containing the corrected versions of scientific names and authorship
+    _remove_aux_columns(conn=conn)
 
 if __name__ == "__main__":
     connection = get_database_connection()

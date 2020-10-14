@@ -1,8 +1,10 @@
-from helpers import get_database_connection, get_config, setup_log_file, execute_sql_from_jinja_string
+from helpers import get_database_connection, get_config, setup_log_file, execute_sql_from_jinja_string, insert_or_get_scientificnameid
 from csv import reader
 import time
 import logging
 
+FIELDS_ANNEXSCIENTIFICNAME = ('id', 'scientificNameId', 'scientificNameInAnnex', 'isScientificName', 'annexCode', 'remarks')
+FIELDS_SCIENTIFICNAME = ('scientificName', 'authorship')
 
 def _get_annex(path):
     """ Read taxa from file with list of taxa (names) contained in official annexes
@@ -21,14 +23,18 @@ def _get_annex(path):
             authorship = row[3]
             annex_id = row[0]
             remarks = row[5]
+            is_scientific_name = True
+            if (scientific_name_corrected == ''):
+                is_scientific_name = False
             annex_scientificnames[id] = {'id': id,
-                                         'scientificNameOriginal': scientific_name_original,
+                                         'scientificNameId': None,
+                                         'scientificNameInAnnex': scientific_name_original,
                                          'scientificName': scientific_name_corrected,
                                          'authorship': authorship,
+                                         'isScientificName': is_scientific_name,
                                          'annexCode': annex_id,
                                          'remarks': remarks}
     return annex_scientificnames
-
 
 def populate_annex_scientificname(conn, config_parser, annex_file):
     """ Populate the table annexscientificname
@@ -49,16 +55,25 @@ def populate_annex_scientificname(conn, config_parser, annex_file):
         n_taxa_max = len(annex_names)
     start = time.time()
     counter_insertions = 0
-    for value in annex_names.values():
-        values = value.values()
-        fields = value.keys()
+    for annex_entry in annex_names.values():
         if counter_insertions < n_taxa_max:
+            dict_for_annexscientificname = {k: annex_entry[k] for k in FIELDS_ANNEXSCIENTIFICNAME}
+            if (dict_for_annexscientificname['isScientificName'] is True):
+                dict_for_scientificname = { k: annex_entry[k] for k in annex_entry.keys() - FIELDS_ANNEXSCIENTIFICNAME }
+                if dict_for_scientificname['authorship'] == '':
+                    dict_for_scientificname['authorship'] = None
+                id_scn = insert_or_get_scientificnameid(conn,
+                                                        scientific_name=dict_for_scientificname['scientificName'],
+                                                        authorship=dict_for_scientificname['scientificName'])
+                dict_for_annexscientificname['scientificNameId'] = id_scn
+            # insert in annexscientificname
             template = """INSERT INTO annexscientificname ({{ col_names | surround_by_quote | join(', ') | sqlsafe 
             }}) VALUES {{ values | inclause }} """
             execute_sql_from_jinja_string(
                 conn,
                 template,
-                context={'col_names': tuple(fields), 'values': tuple(values)}
+                context={'col_names': tuple(dict_for_annexscientificname.keys()),
+                         'values': tuple(dict_for_annexscientificname.values())}
             )
             counter_insertions += 1
             # running infos on screen (no logging)
@@ -70,7 +85,6 @@ def populate_annex_scientificname(conn, config_parser, annex_file):
                                f" {round(elapsed_time, 2)}s." + \
                                f" Expected time to go: {round(expected_time, 2)}s."
                 print(info_message, end="", flush=True)
-
         else:
             break
     # Logging and statistics
@@ -81,7 +95,6 @@ def populate_annex_scientificname(conn, config_parser, annex_file):
     elapsed_time = f"Table annexscientificname populated in {round(end - start)}s."
     print(elapsed_time)
     logging.info(elapsed_time)
-
 
 if __name__ == "__main__":
     connection = get_database_connection()

@@ -22,21 +22,23 @@ CREATE TABLE scientificname (
     "taxonomyId" integer REFERENCES taxonomy(id), -- Can be null if no match
     "deprecatedTaxonId" integer REFERENCES taxon(id),
     "scientificName" character varying(255) NOT NULL, -- as appear in the old "taxon" table
-    "authorship" character varying(255), -- as appear in the old "taxon" table,
+    "authorship" character varying(255), -- as appear in the old "taxon" table or in annexes,
     -- !! the following field are attributes of the match process !!
     "lastMatched" timestamp with time zone, -- when was a GBIF match last attempted?
     "matchConfidence" smallint,
     "matchType" gbifmatchtype,
     CONSTRAINT scn_auth UNIQUE("scientificName", "authorship")
 );
+CREATE UNIQUE INDEX scn_auth_not_null ON scientificname("scientificName")
+WHERE "authorship" IS NULL;
+
 
 CREATE TABLE annexscientificname (
     "id" serial PRIMARY KEY,
-    "scientificnameId" integer REFERENCES scientificname(id), -- Can be null if no match
-    "scientificNameOriginal" character varying(1023) NOT NULL, -- as appear in the original annexes
-    "scientificName" character varying(255), -- corrected names (typos, ...)
-    "authorship" character varying(255), -- corrected names (typos, ...)
+    "scientificNameId" integer REFERENCES scientificname(id), -- Can be null if no match
+    "scientificNameInAnnex" character varying(1023) NOT NULL, -- as appear in the original annexes
     "remarks" character varying (1023), -- remarks about correction
+    "isScientificName" boolean, -- as it can be an expresssion, not just a scientific name,
     "annexCode" character varying(255) REFERENCES annex(annexcode)
 );
 
