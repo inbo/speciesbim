@@ -57,26 +57,20 @@ with conn:
         populate_annex_scientificname.populate_annex_scientificname(conn, config_parser=config,
                                                                     annex_file=ANNEX_FILE_PATH_DEMO)
 
-    message = "Step 4: match annexscientificname table to scientificname table and add taxa if not present"
-    print(message)
-    logging.info(message)
-    match_annexscientificname_to_scientificname.match_annexscientificname_to_scientificname(conn,
-                                                                                            config_parser=config)
-
-    message = "Step 5: populate taxonomy table with matches to GBIF Backbone and related backbone tree " +\
+    message = "Step 4: populate taxonomy table with matches to GBIF Backbone and related backbone tree " +\
               "and update scientificname table"
     print(message)
     logging.info(message)
     gbif_match.gbif_match(conn, config_parser=config, unmatched_only=False)
 
-    message = "Step 6: populate vernacular names from GBIF for each entry in the taxonomy table"
+    message = "Step 5: populate vernacular names from GBIF for each entry in the taxonomy table"
     print(message)
     logging.info(message)
     # list of 2-letters language codes (ISO 639-1)
     languages = ['fr', 'nl', 'en']
     vernacular_names.populate_vernacular_names(conn, config_parser=config, empty_only=False, filter_lang=languages)
 
-    message = "Step 7: populate field exotic_be (values: True of False) from GRIIS checklist for each entry in " \
+    message = "Step 6: populate field exotic_be (values: True of False) from GRIIS checklist for each entry in " \
               "taxonomy table "
     print(message)
     logging.info(message)

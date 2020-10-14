@@ -3,6 +3,8 @@ from csv import reader
 import time
 import logging
 
+FIELDS_ANNEXSCIENTIFICNAME = ('id', 'scientificNameId', 'scientificNameInAnnex', 'isScientificName', 'annexCode', 'remarks')
+FIELDS_SCIENTIFICNAME = ('scientificName', 'authorship')
 
 def _get_annex(path):
     """ Read taxa from file with list of taxa (names) contained in official annexes
@@ -25,6 +27,7 @@ def _get_annex(path):
             if (scientific_name_corrected == ''):
                 is_scientific_name = False
             annex_scientificnames[id] = {'id': id,
+                                         'scientificNameId': None,
                                          'scientificNameInAnnex': scientific_name_original,
                                          'scientificName': scientific_name_corrected,
                                          'authorship': authorship,
@@ -53,16 +56,47 @@ def populate_annex_scientificname(conn, config_parser, annex_file):
         n_taxa_max = len(annex_names)
     start = time.time()
     counter_insertions = 0
-    for value in annex_names.values():
-        values = value.values()
-        fields = value.keys()
+    for annex_entry in annex_names.values():
         if counter_insertions < n_taxa_max:
+            dict_for_annexscientificname = {k: annex_entry[k] for k in FIELDS_ANNEXSCIENTIFICNAME}
+            if (dict_for_annexscientificname['isScientificName'] is True):
+                dict_for_scientificname = { k: annex_entry[k] for k in annex_entry.keys() - FIELDS_ANNEXSCIENTIFICNAME }
+                if dict_for_scientificname['authorship'] == '':
+                    dict_for_scientificname['authorship'] = None
+                    # insert in scientificname
+                    sc_name_template = """WITH ins AS (
+                            INSERT INTO scientificname ("scientificName", "authorship")
+                            VALUES ({{ scientific_name }}, {{ authorship}})         -- input value
+                            ON CONFLICT DO NOTHING
+                            RETURNING scientificname.id
+                            )
+                        SELECT id FROM ins
+                        UNION  ALL
+                        SELECT "id" FROM scientificname          -- 2nd SELECT never executed if INSERT successful
+                        {% if authorship is defined %}
+                            WHERE "scientificName" = {{ scientific_name }} AND "authorship" = {{ authorship }} -- input value a 2nd time
+                        {% else %}
+                            WHERE "scientificName" = {{ scientific_name }} AND "authorship" is NULL -- input value a 2nd time
+                        {% endif %}
+                        LIMIT  1;"""
+                    cur = execute_sql_from_jinja_string(conn,
+                                                        sql_string=sc_name_template,
+                                                        context={'scientific_name': dict_for_scientificname['scientificName'],
+                                                                 'authorship': dict_for_scientificname['authorship']},
+                                                        dict_cursor=True)
+                    id_sc_name = cur.fetchone()
+                    if id_sc_name == None:
+                        print("error")
+                    dict_for_annexscientificname['scientificNameId'] = id_sc_name['id']
+
+            # insert in annexscientificname
             template = """INSERT INTO annexscientificname ({{ col_names | surround_by_quote | join(', ') | sqlsafe 
             }}) VALUES {{ values | inclause }} """
             execute_sql_from_jinja_string(
                 conn,
                 template,
-                context={'col_names': tuple(fields), 'values': tuple(values)}
+                context={'col_names': tuple(dict_for_annexscientificname.keys()),
+                         'values': tuple(dict_for_annexscientificname.values())}
             )
             counter_insertions += 1
             # running infos on screen (no logging)
@@ -74,7 +108,6 @@ def populate_annex_scientificname(conn, config_parser, annex_file):
                                f" {round(elapsed_time, 2)}s." + \
                                f" Expected time to go: {round(expected_time, 2)}s."
                 print(info_message, end="", flush=True)
-
         else:
             break
     # Logging and statistics
