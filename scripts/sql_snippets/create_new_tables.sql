@@ -37,8 +37,6 @@ CREATE TABLE annexscientificname (
     "id" serial PRIMARY KEY,
     "scientificNameId" integer REFERENCES scientificname(id), -- Can be null if no match
     "scientificNameInAnnex" character varying(1023) NOT NULL, -- as appear in the original annexes
-    "scientificName" character varying(255), -- corrected names (typos, ...)
-    "authorship" character varying(255), -- corrected names (typos, ...)
     "remarks" character varying (1023), -- remarks about correction
     "isScientificName" boolean, -- as it can be an expresssion, not just a scientific name,
     "annexCode" character varying(255) REFERENCES annex(annexcode)
