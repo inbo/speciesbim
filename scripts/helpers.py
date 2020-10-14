@@ -114,3 +114,34 @@ def paginated_name_usage(*args, **kwargs):
 
 def print_indent(msg, depth=0, indent=4):
     print("{}{}".format(" " * (indent * depth), msg))
+
+def insert_or_get_scientificnameid(conn, scientific_name, authorship):
+    """ Insert or select a name in scientificname table based on its scientific name and authorship
+
+        If the scientific name - authorship combination already exists in the scientificname table, select it.
+        Otherwise, insert it in a new row.
+
+        In both cases, returns the row id """
+    # insert in scientificname
+    sc_name_template = """WITH ins AS (
+                                INSERT INTO scientificname ("scientificName", "authorship")
+                                VALUES ({{ scientific_name }}, {{ authorship}})         -- input value
+                                ON CONFLICT DO NOTHING
+                                RETURNING scientificname.id
+                                )
+                            SELECT id FROM ins
+                            UNION  ALL
+                            SELECT "id" FROM scientificname          -- 2nd SELECT never executed if INSERT successful
+                            {% if authorship is defined %}
+                                WHERE "scientificName" = {{ scientific_name }} AND "authorship" = {{ authorship }} -- input value a 2nd time
+                            {% else %}
+                                WHERE "scientificName" = {{ scientific_name }} AND "authorship" is NULL -- input value a 2nd time
+                            {% endif %}
+                            LIMIT  1;"""
+    cur = execute_sql_from_jinja_string(conn,
+                                        sql_string=sc_name_template,
+                                        context={'scientific_name': scientific_name,
+                                                 'authorship': authorship},
+                                        dict_cursor=True)
+    return cur.fetchone()['id']
+

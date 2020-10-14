@@ -1,4 +1,4 @@
-from helpers import get_database_connection, get_config, setup_log_file, execute_sql_from_jinja_string
+from helpers import get_database_connection, get_config, setup_log_file, execute_sql_from_jinja_string, insert_or_get_scientificnameid
 from csv import reader
 import time
 import logging
@@ -36,7 +36,6 @@ def _get_annex(path):
                                          'remarks': remarks}
     return annex_scientificnames
 
-
 def populate_annex_scientificname(conn, config_parser, annex_file):
     """ Populate the table annexscientificname
 
@@ -63,32 +62,10 @@ def populate_annex_scientificname(conn, config_parser, annex_file):
                 dict_for_scientificname = { k: annex_entry[k] for k in annex_entry.keys() - FIELDS_ANNEXSCIENTIFICNAME }
                 if dict_for_scientificname['authorship'] == '':
                     dict_for_scientificname['authorship'] = None
-                    # insert in scientificname
-                    sc_name_template = """WITH ins AS (
-                            INSERT INTO scientificname ("scientificName", "authorship")
-                            VALUES ({{ scientific_name }}, {{ authorship}})         -- input value
-                            ON CONFLICT DO NOTHING
-                            RETURNING scientificname.id
-                            )
-                        SELECT id FROM ins
-                        UNION  ALL
-                        SELECT "id" FROM scientificname          -- 2nd SELECT never executed if INSERT successful
-                        {% if authorship is defined %}
-                            WHERE "scientificName" = {{ scientific_name }} AND "authorship" = {{ authorship }} -- input value a 2nd time
-                        {% else %}
-                            WHERE "scientificName" = {{ scientific_name }} AND "authorship" is NULL -- input value a 2nd time
-                        {% endif %}
-                        LIMIT  1;"""
-                    cur = execute_sql_from_jinja_string(conn,
-                                                        sql_string=sc_name_template,
-                                                        context={'scientific_name': dict_for_scientificname['scientificName'],
-                                                                 'authorship': dict_for_scientificname['authorship']},
-                                                        dict_cursor=True)
-                    id_sc_name = cur.fetchone()
-                    if id_sc_name == None:
-                        print("error")
-                    dict_for_annexscientificname['scientificNameId'] = id_sc_name['id']
-
+                id_scn = insert_or_get_scientificnameid(conn,
+                                                        scientific_name=dict_for_scientificname['scientificName'],
+                                                        authorship=dict_for_scientificname['scientificName'])
+                dict_for_annexscientificname['scientificNameId'] = id_scn
             # insert in annexscientificname
             template = """INSERT INTO annexscientificname ({{ col_names | surround_by_quote | join(', ') | sqlsafe 
             }}) VALUES {{ values | inclause }} """
