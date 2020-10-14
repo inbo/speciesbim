@@ -29,7 +29,7 @@ CREATE TABLE scientificname (
     "matchType" gbifmatchtype,
     CONSTRAINT scn_auth UNIQUE("scientificName", "authorship")
 );
-CREATE UNIQUE INDEX scn_auth_not_null ON scientificname("scientificName", ("authorship" IS NULL))
+CREATE UNIQUE INDEX scn_auth_not_null ON scientificname("scientificName")
 WHERE "authorship" IS NULL;
 
 
