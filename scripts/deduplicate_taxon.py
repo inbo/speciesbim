@@ -20,6 +20,10 @@
 # WHERE t.acceptedname = cte_duplicates.acceptedname AND
 #       t.scientificnameauthorship = cte_duplicates.scientificnameauthorship ORDER by t.acceptedname
 #
+# Beware: this query doesn't include records where authorship is NULL, please also take them into account
+# (they are filetered by the t.scientificnameauthorship = cte_duplicates.scientificnameauthorship clause in the query
+# above: in SQL, NULL is not equal to NULL)
+#
 # key: old taxon_id (to be deleted)
 # value: new taxon_id (to replace the other one)
 import json
@@ -50,6 +54,10 @@ def deduplicate_taxon(conn, config_parser):
                 execute_sql_from_jinja_string(conn, q, context={'new_id': new_id, 'old_id': old_id})
 
                 q = "UPDATE biodiv.speciesannex SET taxonid = {{ new_id }} WHERE taxonid = {{ old_id }};"
+                execute_sql_from_jinja_string(conn, q, context={'new_id': new_id, 'old_id': old_id})
+
+                # Also update child taxa that point to the record to be deleted
+                q = "UPDATE biodiv.taxon SET parentid = {{ new_id }} WHERE parentid = {{ old_id }};"
                 execute_sql_from_jinja_string(conn, q, context={'new_id': new_id, 'old_id': old_id})
 
                 q = "DELETE FROM biodiv.taxon WHERE id = {{old_id }};"
