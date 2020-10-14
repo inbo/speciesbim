@@ -145,3 +145,11 @@ def insert_or_get_scientificnameid(conn, scientific_name, authorship):
                                         dict_cursor=True)
     return cur.fetchone()['id']
 
+def update_scientificname_id(conn, scientificname_id, row_id):
+    """ Add scientificNameId in annexscientificname if the name is found in scientificname table"""
+    template = """ UPDATE annexscientificname SET "scientificNameId" = {{ scientificname_id }} """\
+               """ WHERE "id" = {{ id }} """
+    execute_sql_from_jinja_string(conn,
+                                  template,
+                                  {'scientificname_id': scientificname_id,
+                                   'id': row_id})
