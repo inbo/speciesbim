@@ -3,8 +3,8 @@ from csv import reader
 import time
 import logging
 
-FIELDS_ANNEXSCIENTIFICNAME = ('id', 'scientificNameId', 'scientificNameInAnnex', 'isScientificName', 'annexCode', 'remarks')
-FIELDS_SCIENTIFICNAME = ('scientificName', 'authorship')
+FIELDS_ANNEXSCIENTIFICNAME = ('id', 'scientificNameId', 'scientificNameInAnnex', 'isScientificName', 'annexCode',
+                              'remarks')
 
 def _get_annex(path):
     """ Read taxa from file with list of taxa (names) contained in official annexes
@@ -24,7 +24,7 @@ def _get_annex(path):
             annex_id = row[0]
             remarks = row[5]
             is_scientific_name = True
-            if (scientific_name_corrected == ''):
+            if scientific_name_corrected == '':
                 is_scientific_name = False
             annex_scientificnames[id] = {'id': id,
                                          'scientificNameId': None,
@@ -35,6 +35,7 @@ def _get_annex(path):
                                          'annexCode': annex_id,
                                          'remarks': remarks}
     return annex_scientificnames
+
 
 def populate_annex_scientificname(conn, config_parser, annex_file):
     """ Populate the table annexscientificname
@@ -95,6 +96,7 @@ def populate_annex_scientificname(conn, config_parser, annex_file):
     elapsed_time = f"Table annexscientificname populated in {round(end - start)}s."
     print(elapsed_time)
     logging.info(elapsed_time)
+
 
 if __name__ == "__main__":
     connection = get_database_connection()
