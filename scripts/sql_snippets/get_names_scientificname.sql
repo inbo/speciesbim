@@ -1,10 +1,10 @@
 SELECT * FROM scientificname
 {% if demo %}
 WHERE "scientificName" IN (
-        'Mellitiosporium pteridium', -- no matchc to GBIF Backbone
-        'Rana ridibunda', -- Synonym of Pelophylax ridibundus
-        'Fallopia japonica', -- Exotic and synonym of Reynoutria japonica
-        'Sonchus' -- accepted genus
+        'Elachista', -- no match to GBIF Backbone will be found
+        'Triturus alpestris', -- synonym of Ichthyosaura alpestris
+        'Fallopia japonica', -- exotic and synonym of Reynoutria japonica
+        'Trentepholia' -- accepted genus
     )
     {% if unmatched_only %}
     AND "taxonomyId" is NULL

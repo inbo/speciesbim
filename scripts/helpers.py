@@ -19,6 +19,7 @@ def setup_log_file(relative_path):
                         filemode='w',
                         format='%(asctime)s | %(message)s')
 
+
 def get_config():
     """ Read config.ini (in the same directory than this script) and returns a configparser """
     config_parser = configparser.RawConfigParser()
@@ -36,7 +37,7 @@ def get_database_connection():
     """ Read config.ini (in the same directory than this script) and returns a (psycopg2) connection object"""
     config_parser = get_config()
 
-    conn =  psycopg2.connect(dbname=config_parser.get('database', 'dbname'),
+    conn = psycopg2.connect(dbname=config_parser.get('database', 'dbname'),
                             user=config_parser.get('database', 'user'),
                             password=config_parser.get('database', 'password'),
                             host=config_parser.get('database', 'host'),
@@ -95,6 +96,7 @@ def execute_sql_from_file(conn, filename, context=None, dict_cursor=False):
                                          context=context,
                                          dict_cursor=dict_cursor)
 
+
 def paginated_name_usage(*args, **kwargs):
     """Small helper to handle the pagination in pygbif and make sure we get all results in one shot"""
     PER_PAGE = 100
@@ -112,5 +114,46 @@ def paginated_name_usage(*args, **kwargs):
 
     return results
 
+
 def print_indent(msg, depth=0, indent=4):
     print("{}{}".format(" " * (indent * depth), msg))
+
+
+def insert_or_get_scientificnameid(conn, scientific_name, authorship):
+    """ Insert or select a name in scientificname table based on its scientific name and authorship
+
+        If the scientific name - authorship combination already exists in the scientificname table, select it.
+        Otherwise, insert it in a new row.
+
+        In both cases, returns the row id """
+    sc_name_template = """WITH ins AS (
+                                INSERT INTO scientificname ("scientificName", "authorship")
+                                VALUES ({{ scientific_name }}, {{ authorship }})         -- input value
+                                ON CONFLICT DO NOTHING
+                                RETURNING scientificname.id
+                                )
+                            SELECT id FROM ins
+                            UNION  ALL
+                            SELECT "id" FROM scientificname          -- 2nd SELECT never executed if INSERT successful
+                            {% if authorship is defined %}
+                                WHERE "scientificName" = {{ scientific_name }} AND "authorship" = {{ authorship }} -- input value a 2nd time
+                            {% else %}
+                                WHERE "scientificName" = {{ scientific_name }} AND "authorship" is NULL -- input value a 2nd time
+                            {% endif %}
+                            LIMIT 1;"""
+    cur = execute_sql_from_jinja_string(conn,
+                                        sql_string=sc_name_template,
+                                        context={'scientific_name': scientific_name,
+                                                 'authorship': authorship},
+                                        dict_cursor=True)
+    return cur.fetchone()['id']
+
+
+def update_scientificname_id(conn, scientificname_id, row_id):
+    """ Update the scientificNameId field in annexscientificname for the row with row_id"""
+    template = """ UPDATE annexscientificname SET "scientificNameId" = {{ scientificname_id }} 
+                   WHERE "id" = {{ id }} """
+    execute_sql_from_jinja_string(conn,
+                                  template,
+                                  {'scientificname_id': scientificname_id,
+                                   'id': row_id})
