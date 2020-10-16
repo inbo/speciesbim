@@ -1,53 +1,47 @@
-from helpers import get_database_connection, get_config, setup_log_file, execute_sql_from_jinja_string, insert_or_get_scientificnameid
+from helpers import get_database_connection, get_config, setup_log_file, execute_sql_from_jinja_string, \
+    insert_or_get_scientificnameid
 from csv import reader
 import time
 import logging
 
-FIELDS_ANNEXSCIENTIFICNAME = ('id', 'scientificNameId', 'scientificNameInAnnex', 'isScientificName', 'annexCode', 'remarks')
-FIELDS_SCIENTIFICNAME = ('scientificName', 'authorship')
+FIELDS_ANNEXSCIENTIFICNAME = ('scientificNameId', 'scientificNameInAnnex', 'isScientificName', 'annexCode', 'remarks')
 
-def _get_annex(path):
+
+def _load_annex_data_from_file(path):
     """ Read taxa from file with list of taxa (names) contained in official annexes
 
     Return a dictionary of names and their corrected versions (which are equal to the names if no correction is needed)
     """
     with open(path) as csvfile:
         annex_data = reader(csvfile)
-        annex_scientificnames = dict()
+        annex_scientificnames = []
         fields = next(annex_data)
         print("Columns in " + path + ": " + ", ".join(fields))
-        for (i, row) in enumerate(annex_data):
-            id = i + 1
-            scientific_name_original = row[1]
+        for row in annex_data:
             scientific_name_corrected = row[2]
-            authorship = row[3]
-            annex_id = row[0]
-            remarks = row[5]
-            is_scientific_name = True
-            if (scientific_name_corrected == ''):
-                is_scientific_name = False
-            annex_scientificnames[id] = {'id': id,
-                                         'scientificNameId': None,
-                                         'scientificNameInAnnex': scientific_name_original,
+
+            annex_scientificnames.append({'scientificNameId': None,
+                                         'scientificNameInAnnex': row[1],
                                          'scientificName': scientific_name_corrected,
-                                         'authorship': authorship,
-                                         'isScientificName': is_scientific_name,
-                                         'annexCode': annex_id,
-                                         'remarks': remarks}
+                                         'authorship': row[3],
+                                         'isScientificName': (scientific_name_corrected != ''),
+                                         'annexCode': row[0],
+                                         'remarks': row[5]})
     return annex_scientificnames
+
 
 def populate_annex_scientificname(conn, config_parser, annex_file):
     """ Populate the table annexscientificname
 
-    If taxa-limit in configuraton file is not a empty string but a number n, then the first n taxa are imported into
+    If taxa-limit in configuration file is not a empty string but a number n, then the first n taxa are imported into
     the table
-
     """
-    annex_names = _get_annex(path=annex_file)
-    message_n_names_in_annex_file = "Number of taxa listed in official annexes and ordinances: " + \
-                                    str(len(annex_names))
+    annex_names = _load_annex_data_from_file(path=annex_file)
+
+    message_n_names_in_annex_file = f"Number of taxa listed in official annexes and ordinances: {len(annex_names)}"
     print(message_n_names_in_annex_file)
     logging.info(message_n_names_in_annex_file)
+
     n_taxa_max = config_parser.get('annex_scientificname', 'taxa-limit')
     if len(n_taxa_max) > 0:
         n_taxa_max = int(n_taxa_max)
@@ -55,7 +49,7 @@ def populate_annex_scientificname(conn, config_parser, annex_file):
         n_taxa_max = len(annex_names)
     start = time.time()
     counter_insertions = 0
-    for annex_entry in annex_names.values():
+    for annex_entry in annex_names:
         if counter_insertions < n_taxa_max:
             dict_for_annexscientificname = {k: annex_entry[k] for k in FIELDS_ANNEXSCIENTIFICNAME}
             if (dict_for_annexscientificname['isScientificName'] is True):
@@ -95,6 +89,7 @@ def populate_annex_scientificname(conn, config_parser, annex_file):
     elapsed_time = f"Table annexscientificname populated in {round(end - start)}s."
     print(elapsed_time)
     logging.info(elapsed_time)
+
 
 if __name__ == "__main__":
     connection = get_database_connection()

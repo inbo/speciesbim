@@ -7,7 +7,6 @@ import os
 import logging
 
 import deduplicate_taxon
-import match_annexscientificname_to_scientificname
 import gbif_match
 import vernacular_names
 import exotic_status
@@ -56,12 +55,13 @@ with conn:
     message = "Step 3: populate annexscientificname table based on official annexes"
     print(message)
     logging.info(message)
-    if not demo:
-        populate_annex_scientificname.populate_annex_scientificname(conn, config_parser=config,
-                                                                    annex_file=ANNEX_FILE_PATH)
+    if demo:
+        annex_file = ANNEX_FILE_PATH_DEMO
     else:
-        populate_annex_scientificname.populate_annex_scientificname(conn, config_parser=config,
-                                                                    annex_file=ANNEX_FILE_PATH_DEMO)
+        annex_file = ANNEX_FILE_PATH
+
+    populate_annex_scientificname.populate_annex_scientificname(conn, config_parser=config,
+                                                                annex_file=annex_file)
 
     message = "Step 4: populate taxonomy table with matches to GBIF Backbone and related backbone tree " +\
               "and update scientificname table"
