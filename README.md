@@ -3,6 +3,8 @@ Development of the postgreSQL species database of Brussels Environment
 
 ## Changelog / development journal
 
+- There's now a deduplicate_taxon script (also called from transform_db) to remove duplicates in taxon before importing 
+in the new table structure. This is necessary because of newly added constraints.
 - Implement the match of `annexscientificname` table to the `scientificname` table. Add taxa if not present
 - Add field `isScientificName` to `annexscientificname`  table
 - Rename `scientificnameannex` as `annexscientificname` and field `scientificNameOriginal` as `scientificNameInAnnex`

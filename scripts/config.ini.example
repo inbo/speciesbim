@@ -9,6 +9,9 @@ schema = biodiv
 [demo_mode]
 demo = True
 
+[deduplicate_taxon]
+config-filename = deduplicate_taxon_config.json
+
 [transform_db]
 # scientificnames-limit: number | empty for all
 # scientificnames-limit =
@@ -24,7 +27,10 @@ scientificnames-limit = 100
 # taxa-limit =
 taxa-limit = 100
 
-[scientificname_annex]
+[annex_scientificname]
 # taxa-limit: number | empty for all
 # taxa-limit = 500
 taxa-limit =
+
+[annex_scientificname_to_scientificname]'
+scientificnames-limit =

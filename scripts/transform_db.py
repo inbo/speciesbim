@@ -6,6 +6,7 @@
 import os
 import logging
 
+import deduplicate_taxon
 import gbif_match
 import vernacular_names
 import exotic_status
@@ -30,6 +31,11 @@ config = get_config()
 demo = config.getboolean('demo_mode', 'demo')
 
 with conn:
+    message = "Prepare: Solve duplicates in taxon table"
+    print(message)
+    logging.info(message)
+    deduplicate_taxon.deduplicate_taxon(conn, config_parser=config)
+
     message = "Step 0: Drop our new tables if they already exists (idempotent script)"
     print(message)
     logging.info(message)
